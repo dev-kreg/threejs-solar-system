@@ -1,7 +1,5 @@
 # Solar System Simulation
 
-This project simulates the motion of planets in our solar system using Three.js.
-
 <img src="./demo.webp" alt="Solar System Simulation Screenshot" width="800"/>
 
 ## Running the Project

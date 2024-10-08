@@ -66,8 +66,8 @@ const renderScene = new RenderPass(scene, camera)
 const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(sizes.width, sizes.height),
     1.5,  // strength
-    1,  // radius
-    0.75  // threshold
+    0.4,  // radius
+    0.85  // threshold
 )
 const effectComposer = new EffectComposer(renderer)
 effectComposer.addPass(renderScene)
@@ -127,6 +127,14 @@ const planets = [
     new Planet(scene, neptuneTexture,  8,    1500, 165,  0.67,  initialDate),
     new Planet(scene, plutoTexture,    2,    1800, 248,  6.41,  initialDate)
 ]
+
+// Add orbit line visibility toggle to GUI
+const orbitLineVisibility = { visible: true }
+gui.add(orbitLineVisibility, 'visible')
+    .name('Show Orbit Lines')
+    .onChange((value: boolean) => {
+        planets.forEach(planet => planet.setOrbitLineVisibility(value))
+    })
 
 const clock = new THREE.Clock()
 const tick = () => {

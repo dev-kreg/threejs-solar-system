@@ -7,6 +7,7 @@ export class Planet {
     rotationPeriod: number
     radius: number
     initialAngle: number
+    orbitLine: THREE.Line
 
     constructor(
         scene: THREE.Scene,
@@ -30,7 +31,8 @@ export class Planet {
         this.initialAngle = this.calculateInitialAngle(initialDate, referenceDate)
 
         scene.add(this.planet)
-        scene.add(this.createOrbitLine(0xFFF00))
+        this.orbitLine = this.createOrbitLine(0xFFF00)
+        scene.add(this.orbitLine)
     }
 
     orbit(elapsedTime: number) {
@@ -73,5 +75,9 @@ export class Planet {
         const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points)
         const orbitMaterial = new THREE.LineBasicMaterial({ color: color, linewidth: 1, opacity: 0.2, transparent: true })
         return new THREE.Line(orbitGeometry, orbitMaterial)
+    }
+
+    setOrbitLineVisibility(visible: boolean) {
+        this.orbitLine.visible = visible
     }
 }

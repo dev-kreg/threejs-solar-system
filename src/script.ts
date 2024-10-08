@@ -53,13 +53,14 @@ const renderer = new THREE.WebGLRenderer({
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
 // lighting
-const pointLight = new THREE.PointLight(0xfdfbd3, 1000, 0, 1.2)
+const pointLight = new THREE.PointLight('#fefde7', 1000, 0, 1.2)
 pointLight.position.set(0,0,0);
 scene.add(pointLight)
 
-const ambientLight = new THREE.AmbientLight(0x353e4e, 1)
+const ambientLight = new THREE.AmbientLight('#fefde7', 0.2);
 scene.add(ambientLight)
 
 // Textures

@@ -38,17 +38,14 @@ const camera = new THREE.PerspectiveCamera(
     50,
     sizes.width / sizes.height,
     0.1,
-    3000
+    50000
 )
-camera.position.z = 400
-camera.position.y = 150
-// gui.add(camera.position, 'x').min(-500).max(500).step(10).name('x')
-// gui.add(camera.position, 'y').min(-500).max(500).step(10).name('y')
-// gui.add(camera.position, 'z').min(-500).max(500).step(10).name('z')
+camera.position.set(0, 50, 200)
+scene.add(camera)
 
 // Controls
-const controls = new OrbitControls(camera, canvas)
-controls.enableDamping = true
+const orbitControls = new OrbitControls(camera, canvas)
+orbitControls.enableDamping = true
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({
@@ -58,7 +55,7 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 // lighting
-const pointLight = new THREE.PointLight(0xfdfbd3, 1000 ,0, 1.5)
+const pointLight = new THREE.PointLight(0xfdfbd3, 1000, 0, 1.2)
 pointLight.position.set(0,0,0);
 scene.add(pointLight)
 
@@ -76,31 +73,36 @@ rgbeLoader.load('./assets/HDR_blue_nebulae.hdr', (envMap) => {
 const loadManager = new THREE.LoadingManager()
 const textureLoader = new THREE.TextureLoader(loadManager)
 const sunTexture = textureLoader.load('./assets/sun.jpg')
+const mercuryTexture = textureLoader.load('./assets/mercury.jpg')
+const venusTexture = textureLoader.load('./assets/venus_surface.jpg')
+const earthTexture = textureLoader.load('./assets/earth_daymap.jpg')
 const marsTexture = textureLoader.load('./assets/mars.jpg')
 const jupiterTexture = textureLoader.load('./assets/jupiter.jpg')
-const mercuryTexture = textureLoader.load('./assets/mercury.jpg')
+const saturnTexture = textureLoader.load('./assets/saturn.jpg')
+const uranusTexture = textureLoader.load('./assets/uranus.jpg')
 const neptuneTexture = textureLoader.load('./assets/neptune.jpg')
-const earthTexture = textureLoader.load('./assets/earth_daymap.jpg')
+const plutoTexture = textureLoader.load('./assets/pluto.jpg')
 
 // planets
 const sun = new THREE.Mesh(
-    new THREE.SphereGeometry(10),
+    new THREE.SphereGeometry(35),
     new THREE.MeshBasicMaterial({ map: sunTexture }))
 scene.add(sun)
 
 
+const initialDate = new Date('2023-05-23T00:00:00Z')  // You can change this to any date
+
 const planets = [
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: mercuryTexture }), 2, 20, 5),
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: earthTexture }), 5, 50, 4),
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: marsTexture }), 8, 100, 3),
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: jupiterTexture }), 6, 200, 2),
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: neptuneTexture }), 6, 300, 1)
+    new Planet(scene, new THREE.MeshStandardMaterial({ map: mercuryTexture }),  3,    100,  0.24, 58.8,  initialDate),
+    new Planet(scene, new THREE.MeshStandardMaterial({ map: venusTexture }),    5,    180,  0.62, -244,  initialDate),
+    new Planet(scene, new THREE.MeshStandardMaterial({ map: earthTexture }),    5,    250,  1,    1,     initialDate),
+    new Planet(scene, new THREE.MeshStandardMaterial({ map: marsTexture }),     4,    380,  1.88, 1.03,  initialDate),
+    new Planet(scene, new THREE.MeshStandardMaterial({ map: jupiterTexture }),  15,   650,  11.9, 0.41,  initialDate),
+    new Planet(scene, new THREE.MeshStandardMaterial({ map: saturnTexture }),   13,   900,  29.4, 0.44,  initialDate),
+    new Planet(scene, new THREE.MeshStandardMaterial({ map: uranusTexture }),   8,    1200, 84,   -0.72, initialDate),
+    new Planet(scene, new THREE.MeshStandardMaterial({ map: neptuneTexture }),  8,    1500, 165,  0.67,  initialDate),
+    new Planet(scene, new THREE.MeshStandardMaterial({ map: plutoTexture }),    2,    1800, 248,  6.41,  initialDate)
 ]
-
-const ship = new Ship(scene, planets, planets[1])
-
-
-// ship.travelTo(planets[4])
 
 const clock = new THREE.Clock()
 const tick = () => {
@@ -111,8 +113,11 @@ const tick = () => {
     });
 
     sun.rotation.y = -(elapsedTime * Math.PI / 10)
+    const rotationsPerYear = 365.25 / 24.47;
+    const rotationAngle = (elapsedTime / 100) * rotationsPerYear * 2 * Math.PI;
+    sun.rotation.y = -rotationAngle;
 
-    controls.update()
+    orbitControls.update()
     renderer.render(scene, camera)
     window.requestAnimationFrame(tick)
 }

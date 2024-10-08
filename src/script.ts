@@ -80,7 +80,7 @@ gui.add(bloomPass, 'threshold', 0, 1, 0.01).name('Bloom threshold')
 
 // lighting
 const pointLight = new THREE.PointLight('#fefde7', 1000, 0, 1.2)
-pointLight.position.set(0,0,0);
+pointLight.position.set(0, 0, 0);
 scene.add(pointLight)
 
 const ambientLight = new THREE.AmbientLight('#fefde7', 0.2);
@@ -114,18 +114,27 @@ const sun = new THREE.Mesh(
 )
 scene.add(sun)
 
-const initialDate = new Date('2023-05-23T00:00:00Z')  // You can change this to any date
+
+// Add date display function
+const dateDisplay = document.getElementById('simulated-date')!;
+const initialDate = new Date()
+
+function updateDateDisplay(elapsedTime: number) {
+    const milliseconds = initialDate.getTime() + elapsedTime * 1000;
+    const currentDate = new Date(milliseconds);
+    dateDisplay.textContent = currentDate.toUTCString();
+}
 
 const planets = [
-    new Planet(scene, mercuryTexture,  3,    100,   88,     58.65,  initialDate),
-    new Planet(scene, venusTexture,    5,    180,   224.7,  -243,   initialDate),
-    new Planet(scene, earthTexture,    5,    250,   365.25, 1,      initialDate),
-    new Planet(scene, marsTexture,     4,    380,   687,    1.03,   initialDate),
-    new Planet(scene, jupiterTexture,  15,   650,   4333,   0.41,   initialDate),
-    new Planet(scene, saturnTexture,   13,   900,   10759,  0.44,   initialDate),
-    new Planet(scene, uranusTexture,   8,    1200,  30687,  -0.72,  initialDate),
-    new Planet(scene, neptuneTexture,  8,    1500,  60190,  0.67,   initialDate),
-    new Planet(scene, plutoTexture,    2,    1800,  90560,  6.39,   initialDate)
+    new Planet(scene, mercuryTexture, 3, 100, 88, 58.65, initialDate),
+    new Planet(scene, venusTexture, 5, 180, 224.7, -243, initialDate),
+    new Planet(scene, earthTexture, 5, 250, 365.25, 1, initialDate),
+    new Planet(scene, marsTexture, 4, 380, 687, 1.03, initialDate),
+    new Planet(scene, jupiterTexture, 15, 650, 4333, 0.41, initialDate),
+    new Planet(scene, saturnTexture, 13, 900, 10759, 0.44, initialDate),
+    new Planet(scene, uranusTexture, 8, 1200, 30687, -0.72, initialDate),
+    new Planet(scene, neptuneTexture, 8, 1500, 60190, 0.67, initialDate),
+    new Planet(scene, plutoTexture, 2, 1800, 90560, 6.39, initialDate)
 ]
 
 // Add orbit line visibility toggle to GUI
@@ -172,6 +181,9 @@ const tick = () => {
     const solarRotationPeriod = 25.38 * 24 * 60 * 60; // 25.38 days in seconds
     const rotationAngle = (accumulatedTime % solarRotationPeriod) / solarRotationPeriod * 2 * Math.PI;
     sun.rotation.y = -rotationAngle;
+
+    // Update date display
+    updateDateDisplay(accumulatedTime);
 
     orbitControls.update()
     effectComposer.render()

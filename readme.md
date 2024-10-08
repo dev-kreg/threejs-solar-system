@@ -2,7 +2,7 @@
 
 This project simulates the motion of planets in our solar system using Three.js.
 
-<img src="./app-screenshot.png" alt="Solar System Simulation Screenshot" width="800"/>
+<img src="./demo.webp" alt="Solar System Simulation Screenshot" width="800"/>
 
 ## Running the Project
 
@@ -11,7 +11,7 @@ This project simulates the motion of planets in our solar system using Three.js.
 3. Navigate to the project directory in your terminal.
 4. Run `npm install` to install dependencies.
 5. Run `npm run dev` to start the development server.
-6. Open your browser and go to `http://localhost:3000` (or the port specified in your console).
+6. Open your browser and go to `http://localhost:4200` (or the port specified in your console).
 
 ## Features
 

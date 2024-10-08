@@ -1,7 +1,9 @@
 import * as THREE from 'three'
+import { PlanetData } from '../constants/PlanetaryData'
+import { SceneManager } from '../utils/SceneManager'
 
 export class Planet {
-    planet = new THREE.Mesh
+    planet: THREE.Mesh
     orbitRadius: number
     orbitalPeriod: number
     rotationPeriod: number
@@ -10,29 +12,25 @@ export class Planet {
     orbitLine: THREE.Line
 
     constructor(
-        scene: THREE.Scene,
-        texture: THREE.Texture,
-        radius: number, // visual radius (not to scale)
-        orbitRadius: number, // in AU
-        orbitalPeriod: number, // in Earth days
-        rotationPeriod: number, // in Earth days
+        data: PlanetData,
         initialDate: Date,
         referenceDate: Date = new Date('2000-01-01T12:00:00Z') // J2000 epoch
     ) {
+        const texture = new THREE.TextureLoader().load(data.texture)
         this.planet = new THREE.Mesh(
-            new THREE.SphereGeometry(radius),
+            new THREE.SphereGeometry(data.radius),
             new THREE.MeshStandardMaterial({ map: texture })
         )
-        this.orbitRadius = orbitRadius
-        this.orbitalPeriod = orbitalPeriod
-        this.rotationPeriod = rotationPeriod
-        this.radius = radius
+        this.orbitRadius = data.orbitRadius
+        this.orbitalPeriod = data.orbitalPeriod
+        this.rotationPeriod = data.rotationPeriod
+        this.radius = data.radius
 
         this.initialAngle = this.calculateInitialAngle(initialDate, referenceDate)
 
-        scene.add(this.planet)
+        SceneManager.getInstance().addObject(this.planet)
         this.orbitLine = this.createOrbitLine(0xFFF00)
-        scene.add(this.orbitLine)
+        SceneManager.getInstance().addObject(this.orbitLine)
     }
 
     orbit(elapsedTime: number) {
@@ -78,5 +76,11 @@ export class Planet {
 
     setOrbitLineVisibility(visible: boolean) {
         this.orbitLine.visible = visible
+    }
+
+    
+    dispose() {
+        SceneManager.getInstance().removeObject(this.planet)
+        SceneManager.getInstance().removeObject(this.orbitLine)
     }
 }

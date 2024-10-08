@@ -2,6 +2,8 @@
 
 This project simulates the motion of planets in our solar system using Three.js.
 
+<img src="./app-screenshot.png" alt="Solar System Simulation Screenshot" width="800"/>
+
 ## Running the Project
 
 1. Ensure you have Node.js installed on your system.

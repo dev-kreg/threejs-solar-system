@@ -10,7 +10,7 @@ export class Planet {
 
     constructor(
         scene: THREE.Scene,
-        texture: THREE.MeshStandardMaterial,
+        texture: THREE.Texture,
         radius: number, // 1000 == 1 AU
         orbitRadius: number,
         orbitalPeriod: number, // 1 == 1 earth year for 1 orbit
@@ -20,9 +20,8 @@ export class Planet {
     ) {
         this.planet = new THREE.Mesh(
             new THREE.SphereGeometry(radius),
-            texture
+            new THREE.MeshStandardMaterial({ map: texture })
         )
-
         this.orbitRadius = orbitRadius
         this.orbitalPeriod = orbitalPeriod
         this.rotationPeriod = rotationPeriod
@@ -30,11 +29,7 @@ export class Planet {
 
         this.initialAngle = this.calculateInitialAngle(initialDate, referenceDate)
 
-        // Set initial position
-        this.orbit(0)
-
         scene.add(this.planet)
-
         scene.add(this.createOrbitLine(0xFFF00))
     }
 

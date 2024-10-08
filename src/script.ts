@@ -4,6 +4,9 @@ import GUI from 'lil-gui'
 import { Planet } from './Planet'
 import { Ship } from './Ship'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 
 /**
  * Base
@@ -31,6 +34,9 @@ window.addEventListener('resize', () => {
     // Update renderer
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+    // Update effect composer
+    effectComposer.setSize(sizes.width, sizes.height)
 })
 
 // Camera
@@ -54,6 +60,23 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+
+// Post processing
+const renderScene = new RenderPass(scene, camera)
+const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(sizes.width, sizes.height),
+    1.5,  // strength
+    1,  // radius
+    0.75  // threshold
+)
+const effectComposer = new EffectComposer(renderer)
+effectComposer.addPass(renderScene)
+effectComposer.addPass(bloomPass)
+
+// Add bloom parameters to GUI
+gui.add(bloomPass, 'strength', 0, 3, 0.01).name('Bloom strength')
+gui.add(bloomPass, 'radius', 0, 1, 0.01).name('Bloom radius')
+gui.add(bloomPass, 'threshold', 0, 1, 0.01).name('Bloom threshold')
 
 // lighting
 const pointLight = new THREE.PointLight('#fefde7', 1000, 0, 1.2)
@@ -87,22 +110,22 @@ const plutoTexture = textureLoader.load('./assets/pluto.jpg')
 // planets
 const sun = new THREE.Mesh(
     new THREE.SphereGeometry(35),
-    new THREE.MeshBasicMaterial({ map: sunTexture }))
+    new THREE.MeshBasicMaterial({ map: sunTexture })
+)
 scene.add(sun)
-
 
 const initialDate = new Date('2023-05-23T00:00:00Z')  // You can change this to any date
 
 const planets = [
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: mercuryTexture }),  3,    100,  0.24, 58.8,  initialDate),
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: venusTexture }),    5,    180,  0.62, -244,  initialDate),
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: earthTexture }),    5,    250,  1,    1,     initialDate),
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: marsTexture }),     4,    380,  1.88, 1.03,  initialDate),
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: jupiterTexture }),  15,   650,  11.9, 0.41,  initialDate),
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: saturnTexture }),   13,   900,  29.4, 0.44,  initialDate),
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: uranusTexture }),   8,    1200, 84,   -0.72, initialDate),
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: neptuneTexture }),  8,    1500, 165,  0.67,  initialDate),
-    new Planet(scene, new THREE.MeshStandardMaterial({ map: plutoTexture }),    2,    1800, 248,  6.41,  initialDate)
+    new Planet(scene, mercuryTexture,  3,    100,  0.24, 58.8,  initialDate),
+    new Planet(scene, venusTexture,    5,    180,  0.62, -244,  initialDate),
+    new Planet(scene, earthTexture,    5,    250,  1,    1,     initialDate),
+    new Planet(scene, marsTexture,     4,    380,  1.88, 1.03,  initialDate),
+    new Planet(scene, jupiterTexture,  15,   650,  11.9, 0.41,  initialDate),
+    new Planet(scene, saturnTexture,   13,   900,  29.4, 0.44,  initialDate),
+    new Planet(scene, uranusTexture,   8,    1200, 84,   -0.72, initialDate),
+    new Planet(scene, neptuneTexture,  8,    1500, 165,  0.67,  initialDate),
+    new Planet(scene, plutoTexture,    2,    1800, 248,  6.41,  initialDate)
 ]
 
 const clock = new THREE.Clock()
@@ -113,13 +136,12 @@ const tick = () => {
         planet.orbit(elapsedTime)
     });
 
-    sun.rotation.y = -(elapsedTime * Math.PI / 10)
     const rotationsPerYear = 365.25 / 24.47;
     const rotationAngle = (elapsedTime / 100) * rotationsPerYear * 2 * Math.PI;
     sun.rotation.y = -rotationAngle;
 
     orbitControls.update()
-    renderer.render(scene, camera)
+    effectComposer.render()
     window.requestAnimationFrame(tick)
 }
 tick()

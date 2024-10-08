@@ -12,10 +12,10 @@ export class Planet {
     constructor(
         scene: THREE.Scene,
         texture: THREE.Texture,
-        radius: number, // 1000 == 1 AU
-        orbitRadius: number,
-        orbitalPeriod: number, // 1 == 1 earth year for 1 orbit
-        rotationPeriod: number, // 1 == 1 earth year for 1 rotation
+        radius: number, // visual radius (not to scale)
+        orbitRadius: number, // in AU
+        orbitalPeriod: number, // in Earth days
+        rotationPeriod: number, // in Earth days
         initialDate: Date,
         referenceDate: Date = new Date('2000-01-01T12:00:00Z') // J2000 epoch
     ) {
@@ -36,23 +36,22 @@ export class Planet {
     }
 
     orbit(elapsedTime: number) {
-        // Convert elapsed time to years
-        const elapsedYears = elapsedTime / 100;
+        // Convert elapsed time to days
+        const elapsedDays = elapsedTime / (24 * 60 * 60);
 
         // Orbital motion
-        const orbitalAngle = this.initialAngle + (elapsedYears * 2 * Math.PI / this.orbitalPeriod);
+        const orbitalAngle = this.initialAngle + (elapsedDays * 2 * Math.PI / this.orbitalPeriod);
         this.planet.position.x = Math.cos(orbitalAngle) * this.orbitRadius;
         this.planet.position.z = Math.sin(orbitalAngle) * this.orbitRadius;
 
         // Rotational motion
-        const rotationsPerYear = 365.25 / this.rotationPeriod;
-        const rotationAngle = elapsedYears * rotationsPerYear * 2 * Math.PI;
+        const rotationAngle = (elapsedDays / this.rotationPeriod) * 2 * Math.PI;
         this.planet.rotation.y = -rotationAngle;
     }
 
     calculateInitialAngle(initialDate: Date, referenceDate: Date): number {
-        // Calculate the time difference in years
-        const timeDiff = (initialDate.getTime() - referenceDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25)
+        // Calculate the time difference in days
+        const timeDiff = (initialDate.getTime() - referenceDate.getTime()) / (1000 * 60 * 60 * 24)
 
         // Calculate the angle based on the orbital period
         const angle = (timeDiff / this.orbitalPeriod) * 2 * Math.PI

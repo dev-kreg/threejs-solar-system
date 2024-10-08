@@ -117,15 +117,15 @@ scene.add(sun)
 const initialDate = new Date('2023-05-23T00:00:00Z')  // You can change this to any date
 
 const planets = [
-    new Planet(scene, mercuryTexture,  3,    100,  0.24, 58.8,  initialDate),
-    new Planet(scene, venusTexture,    5,    180,  0.62, -244,  initialDate),
-    new Planet(scene, earthTexture,    5,    250,  1,    1,     initialDate),
-    new Planet(scene, marsTexture,     4,    380,  1.88, 1.03,  initialDate),
-    new Planet(scene, jupiterTexture,  15,   650,  11.9, 0.41,  initialDate),
-    new Planet(scene, saturnTexture,   13,   900,  29.4, 0.44,  initialDate),
-    new Planet(scene, uranusTexture,   8,    1200, 84,   -0.72, initialDate),
-    new Planet(scene, neptuneTexture,  8,    1500, 165,  0.67,  initialDate),
-    new Planet(scene, plutoTexture,    2,    1800, 248,  6.41,  initialDate)
+    new Planet(scene, mercuryTexture,  3,    100,   88,     58.65,  initialDate),
+    new Planet(scene, venusTexture,    5,    180,   224.7,  -243,   initialDate),
+    new Planet(scene, earthTexture,    5,    250,   365.25, 1,      initialDate),
+    new Planet(scene, marsTexture,     4,    380,   687,    1.03,   initialDate),
+    new Planet(scene, jupiterTexture,  15,   650,   4333,   0.41,   initialDate),
+    new Planet(scene, saturnTexture,   13,   900,   10759,  0.44,   initialDate),
+    new Planet(scene, uranusTexture,   8,    1200,  30687,  -0.72,  initialDate),
+    new Planet(scene, neptuneTexture,  8,    1500,  60190,  0.67,   initialDate),
+    new Planet(scene, plutoTexture,    2,    1800,  90560,  6.39,   initialDate)
 ]
 
 // Add orbit line visibility toggle to GUI
@@ -136,20 +136,46 @@ gui.add(orbitLineVisibility, 'visible')
         planets.forEach(planet => planet.setOrbitLineVisibility(value))
     })
 
+// Add exponential time scale control to GUI
+const timeControl = { scale: 1, exponent: 5 }
+let accumulatedTime = 0;
+let lastFrameTime = 0;
+
+const updateTimeScale = (value: number) => {
+    timeControl.exponent = value;
+    timeControl.scale = Math.pow(10, value);
+    timeScaleGUI.name(`Time Scale: ${timeControl.scale.toFixed()}x`);
+}
+
+const timeScaleGUI = gui.add(timeControl, 'exponent', 0, 7, 0.25)
+    .name('Time Scale: 1x')
+    .onChange(updateTimeScale);
+
+// Initialize with 100000x speed (10^5)
+updateTimeScale(5);
+
 const clock = new THREE.Clock()
+clock.start();
+
 const tick = () => {
-    const elapsedTime = clock.getElapsedTime()
+    const currentTime = clock.getElapsedTime();
+    const deltaTime = currentTime - lastFrameTime;
+    lastFrameTime = currentTime;
+
+    accumulatedTime += deltaTime * timeControl.scale;
 
     planets.forEach(planet => {
-        planet.orbit(elapsedTime)
+        planet.orbit(accumulatedTime);
     });
 
-    const rotationsPerYear = 365.25 / 24.47;
-    const rotationAngle = (elapsedTime / 100) * rotationsPerYear * 2 * Math.PI;
+    // Sun rotation
+    const solarRotationPeriod = 25.38 * 24 * 60 * 60; // 25.38 days in seconds
+    const rotationAngle = (accumulatedTime % solarRotationPeriod) / solarRotationPeriod * 2 * Math.PI;
     sun.rotation.y = -rotationAngle;
 
     orbitControls.update()
     effectComposer.render()
     window.requestAnimationFrame(tick)
 }
+
 tick()

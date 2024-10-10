@@ -11,6 +11,7 @@ export class SolarSystemScene {
     private sun!: THREE.Mesh
     private bloomPass!: UnrealBloomPass
     private loadingManager: THREE.LoadingManager
+    public isLoaded: boolean = false
 
     constructor(canvas: HTMLCanvasElement) {
         this.sceneManager = SceneManager.initialize(canvas)
@@ -18,9 +19,12 @@ export class SolarSystemScene {
             // onLoad
             () => {
                 const loadingOverlay = document.getElementById('loading-overlay')
-                if (loadingOverlay) {
-                    loadingOverlay.style.display = 'none'
-                }
+                const dateDisplay = document.getElementById('date-display')
+
+                loadingOverlay!.style.display = 'none'
+                dateDisplay!.style.display = 'unset'
+                
+                this.isLoaded = true
             },
             // onProgress
             (url, itemsLoaded, itemsTotal) => {
@@ -77,6 +81,8 @@ export class SolarSystemScene {
     }
 
     update(elapsedTime: number) {
+        if (!this.isLoaded) return
+
         this.planets?.forEach(planet => planet.orbit(elapsedTime))
 
         const rotationAngle = (elapsedTime % sunData.rotationPeriod) / sunData.rotationPeriod * 2 * Math.PI

@@ -18,6 +18,7 @@
     font-family: Arial, sans-serif;
     font-size: 16px;
     padding: 5px;
+    display: none; /* shown when loading complete */
 }
 
 #loading-overlay {

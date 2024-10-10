@@ -4,8 +4,8 @@ import { GUIManager } from './utils/GUI'
 
 const canvas = document.querySelector('canvas.webgl') as HTMLCanvasElement
 const solarSystemScene = new SolarSystemScene(canvas)
-const timeManager = new TimeManager()
-const guiManager = new GUIManager(solarSystemScene.getBloomPass(), timeManager, solarSystemScene)
+let timeManager: TimeManager | null = null
+let guiManager: GUIManager | null = null
 
 const dateDisplay = document.getElementById('simulated-date')!
 const initialDate = new Date()
@@ -21,9 +21,16 @@ function updateDateDisplay(elapsedTime: number) {
 }
 
 function animate() {
-    const elapsedTime = timeManager.updateTime()
-    solarSystemScene.update(elapsedTime)
-    updateDateDisplay(elapsedTime)
+    if (solarSystemScene.isLoaded) {
+        if (!timeManager) {
+            // Initialize TimeManager and GUIManager when loading is complete
+            timeManager = new TimeManager()
+            guiManager = new GUIManager(solarSystemScene.getBloomPass(), timeManager, solarSystemScene)
+        }
+        const elapsedTime = timeManager.updateTime()
+        solarSystemScene.update(elapsedTime)
+        updateDateDisplay(elapsedTime)
+    }
     requestAnimationFrame(animate)
 }
 

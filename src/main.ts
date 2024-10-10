@@ -13,7 +13,11 @@ const initialDate = new Date()
 function updateDateDisplay(elapsedTime: number) {
     const milliseconds = initialDate.getTime() + elapsedTime * 1000
     const currentDate = new Date(milliseconds)
-    dateDisplay.textContent = currentDate.toUTCString()
+    dateDisplay.textContent = currentDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit'
+      });
 }
 
 function animate() {

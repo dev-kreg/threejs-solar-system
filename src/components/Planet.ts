@@ -14,9 +14,10 @@ export class Planet {
     constructor(
         data: PlanetData,
         initialDate: Date,
+        loadingManager: THREE.LoadingManager,
         referenceDate: Date = new Date('2000-01-01T12:00:00Z') // J2000 epoch
     ) {
-        const texture = new THREE.TextureLoader().load(data.texture)
+        const texture = new THREE.TextureLoader(loadingManager).load(data.texture)
         this.planet = new THREE.Mesh(
             new THREE.SphereGeometry(data.radius),
             new THREE.MeshStandardMaterial({ map: texture })
@@ -32,6 +33,7 @@ export class Planet {
         this.orbitLine = this.createOrbitLine(0xFFF00)
         SceneManager.getInstance().addObject(this.orbitLine)
     }
+
 
     orbit(elapsedTime: number) {
         // Convert elapsed time to days
@@ -78,7 +80,7 @@ export class Planet {
         this.orbitLine.visible = visible
     }
 
-    
+
     dispose() {
         SceneManager.getInstance().removeObject(this.planet)
         SceneManager.getInstance().removeObject(this.orbitLine)

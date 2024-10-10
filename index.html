@@ -5,18 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar System Simulation</title>
     <link rel="icon" type="image/x-icon" href="/threejs-solar-system/favicon.ico">
-  <script type="module" crossorigin src="/threejs-solar-system/assets/main-qyNUiiCH.js"></script>
-  <link rel="stylesheet" crossorigin href="/threejs-solar-system/assets/main-DpfRGWCz.css">
+  <script type="module" crossorigin src="/threejs-solar-system/assets/main-Ws5kFMz4.js"></script>
+  <link rel="stylesheet" crossorigin href="/threejs-solar-system/assets/main-Cqy-inxH.css">
 </head>
 <body>
     <canvas class="webgl"></canvas>
+    
+    <div id="planet-detail-view" class="planet-detail-view">
+        <button id="close-detail-view" class="close-button">Close</button>
+        <canvas id="planet-detail-canvas"></canvas>
+        <div id="planet-info"></div>
+    </div>
+
+    <div id="date-display">
+        <span id="simulated-date"></span>
+    </div>
+
+
     <div id="loading-overlay">
         <div id="loader"></div>
         <p id="loading-text"></p>
     </div>
+
     <div id="error-container"></div>
-    <div id="date-display">
-        <span id="simulated-date"></span>
-    </div>
+
+
 </body>
 </html>

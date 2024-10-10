@@ -22,22 +22,37 @@ export class SolarSystemScene {
                 const dateDisplay = document.getElementById('date-display')
 
                 loadingOverlay!.style.display = 'none'
-                dateDisplay!.style.display = 'unset'
-                
+                dateDisplay!.style.display = 'block'
+
                 this.isLoaded = true
             },
             // onProgress
             (url, itemsLoaded, itemsTotal) => {
+                const loadingText = document.getElementById('loading-text')
+
+                loadingText!.textContent = `Loading assets... (${itemsLoaded}/${itemsTotal})`
                 console.log(`Loading file: ${url}. ${itemsLoaded} of ${itemsTotal} files.`)
             },
             // onError
             (url) => {
+                const errorContainer = document.getElementById('error-container')!
+                const error = document.createElement('p')
+                error.textContent = `Failed to load: ${url}`
+                errorContainer.appendChild(error)
+            
+                window.setTimeout(() => {
+                    error.style.opacity = '0'
+                    error.addEventListener('transitionend', () => {
+                        errorContainer.removeChild(error)
+                    })
+                }, 4000)
+            
                 console.error(`There was an error loading ${url}`)
             }
         )
-        
+
         this.setupLighting()
-        this.setupEnvironment() 
+        this.setupEnvironment()
         this.createCelestialBodies()
     }
 

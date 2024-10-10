@@ -16,8 +16,7 @@ export const planetaryData: PlanetData[] = [
     { name: "Saturn", texture: "saturn.webp", radius: 13, orbitRadius: 900, orbitalPeriod: 10759, rotationPeriod: 0.44 },
     { name: "Uranus", texture: "uranus.webp", radius: 8, orbitRadius: 1200, orbitalPeriod: 30687, rotationPeriod: -0.72 },
     { name: "Neptune", texture: "neptune.webp", radius: 8, orbitRadius: 1500, orbitalPeriod: 60190, rotationPeriod: 0.67 },
-    { name: "Pluto", texture: "pluto.webp", radius: 2, orbitRadius: 1800, orbitalPeriod: 90560, rotationPeriod: 6.39 }
-];
+    { name: "Pluto", texture: "pluto.webp", radius: 2, orbitRadius: 1800, orbitalPeriod: 90560, rotationPeriod: 6.39 },];
 
 export const sunData = {
     texture: "sun.webp",

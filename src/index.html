@@ -5,15 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar System Simulation</title>
     <link rel="stylesheet" href="./style.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 <body>
     <canvas class="webgl"></canvas>
     <div id="loading-overlay">
-        <div class="loader"></div>
-        <p>Loading Solar System...</p>
+        <div id="loader"></div>
+        <p id="loading-text"></p>
     </div>
+    <div id="error-container"></div>
     <div id="date-display">
-        Simulated Date: <span id="simulated-date"></span>
+        <span id="simulated-date"></span>
     </div>
     <script type="module" src="./main.ts"></script>
 </body>

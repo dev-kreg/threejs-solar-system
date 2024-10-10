@@ -1,8 +1,10 @@
 # Solar System Simulation
 
+[Open scene in your browser](https://dev-kreg.github.io/threejs-solar-system/)
+
 <img src="./demo.webp" alt="Solar System Simulation Screenshot" width="800"/>
 
-## Running the Project
+## Running the Project locally
 
 1. Ensure you have Node.js installed on your system.
 2. Clone this repository.

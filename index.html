@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js Space Simulation</title>
-
-  <script type="module" crossorigin src="/threejs-solar-system/assets/main-Dlcuyh5S.js"></script>
-  <link rel="stylesheet" crossorigin href="/threejs-solar-system/assets/main-BJnnUcfK.css">
+    <title>Solar System Simulation</title>
+  <script type="module" crossorigin src="/threejs-solar-system/assets/main-DWY-wzan.js"></script>
+  <link rel="stylesheet" crossorigin href="/threejs-solar-system/assets/main-Cl0Qd3DX.css">
 </head>
 <body>
-    <div id="date-display" style="position: absolute; top: 10px; left: 10px; color: white; font-family: Arial, sans-serif; font-size: 16px; background-color: rgba(0, 0, 0, 0.5); padding: 5px; border-radius: 5px;">
+    <canvas class="webgl"></canvas>
+    <div id="loading-overlay">
+        <div class="loader"></div>
+        <p>Loading Solar System...</p>
+    </div>
+    <div id="date-display">
         Simulated Date: <span id="simulated-date"></span>
     </div>
-    <canvas class="webgl"></canvas>
 </body>
 </html>

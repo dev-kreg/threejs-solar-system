@@ -4,6 +4,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { Planet } from '../components/Planet'
 import { planetaryData, sunData } from '../constants/PlanetaryData'
 import { SceneManager } from '../utils/SceneManager'
+import { InteractionManager } from '../utils/InteractionManager'
 
 export class SolarSystemScene {
     private sceneManager: SceneManager
@@ -11,9 +12,10 @@ export class SolarSystemScene {
     private sun!: THREE.Mesh
     private bloomPass!: UnrealBloomPass
     private loadingManager: THREE.LoadingManager
+    private interactionManager: InteractionManager | undefined
     public isLoaded: boolean = false
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, overlayCanvas: HTMLCanvasElement) {
         this.sceneManager = SceneManager.initialize(canvas)
         this.loadingManager = new THREE.LoadingManager(
             // onLoad
@@ -25,6 +27,10 @@ export class SolarSystemScene {
                 dateDisplay!.style.display = 'block'
 
                 this.isLoaded = true
+
+                if (this.planets) {
+                    this.interactionManager = new InteractionManager(this.planets, overlayCanvas)
+                }
             },
             // onProgress
             (url, itemsLoaded, itemsTotal) => {
@@ -95,6 +101,14 @@ export class SolarSystemScene {
         this.planets = planetaryData.map(data => new Planet(data, initialDate, this.loadingManager))
     }
 
+    setOrbitLineVisibility(visible: boolean) {
+        this.planets?.forEach(planet => planet.setOrbitLineVisibility(visible))
+    }
+
+    getBloomPass() {
+        return this.bloomPass
+    }
+
     update(elapsedTime: number) {
         if (!this.isLoaded) return
 
@@ -104,13 +118,6 @@ export class SolarSystemScene {
         this.sun.rotation.y = -rotationAngle
 
         this.sceneManager.update()
-    }
-
-    setOrbitLineVisibility(visible: boolean) {
-        this.planets?.forEach(planet => planet.setOrbitLineVisibility(visible))
-    }
-
-    getBloomPass() {
-        return this.bloomPass
+        this.interactionManager?.render()
     }
 }

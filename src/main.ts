@@ -2,8 +2,9 @@ import { SolarSystemScene } from './scenes/SolarSystemScene'
 import { TimeManager } from './utils/TimeManager'
 import { GUIManager } from './utils/GUI'
 
-const canvas = document.querySelector('canvas.webgl') as HTMLCanvasElement
-const solarSystemScene = new SolarSystemScene(canvas)
+const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement
+const overlayCanvas = document.getElementById('overlay') as HTMLCanvasElement
+const solarSystemScene = new SolarSystemScene(webglCanvas, overlayCanvas)
 let timeManager: TimeManager | null = null
 let guiManager: GUIManager | null = null
 

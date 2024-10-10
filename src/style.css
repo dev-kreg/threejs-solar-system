@@ -3,11 +3,21 @@
     padding: 0;
 }
 
-.webgl {
-    position: fixed;
+#canvas-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#webgl,
+#overlay {
+    position: absolute;
     top: 0;
     left: 0;
-    outline: none;
+}
+#overlay {
+    
+    pointer-events: none; /* This allows events to pass through */
 }
 
 body {

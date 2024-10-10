@@ -3,13 +3,16 @@ import { PlanetData } from '../constants/PlanetaryData'
 import { SceneManager } from '../utils/SceneManager'
 
 export class Planet {
+    group: THREE.Group
     planet: THREE.Mesh
+    hitbox: THREE.Mesh
     orbitRadius: number
     orbitalPeriod: number
     rotationPeriod: number
     radius: number
     initialAngle: number
     orbitLine: THREE.Line
+    name: string
 
     constructor(
         data: PlanetData,
@@ -17,11 +20,7 @@ export class Planet {
         loadingManager: THREE.LoadingManager,
         referenceDate: Date = new Date('2000-01-01T12:00:00Z') // J2000 epoch
     ) {
-        const texture = new THREE.TextureLoader(loadingManager).load(data.texture)
-        this.planet = new THREE.Mesh(
-            new THREE.SphereGeometry(data.radius),
-            new THREE.MeshStandardMaterial({ map: texture })
-        )
+        this.name = data.name
         this.orbitRadius = data.orbitRadius
         this.orbitalPeriod = data.orbitalPeriod
         this.rotationPeriod = data.rotationPeriod
@@ -29,11 +28,35 @@ export class Planet {
 
         this.initialAngle = this.calculateInitialAngle(initialDate, referenceDate)
 
-        SceneManager.getInstance().addObject(this.planet)
-        this.orbitLine = this.createOrbitLine(0xFFF00)
+        // Create group
+        this.group = new THREE.Group()
+
+        // Create planet mesh
+        const texture = new THREE.TextureLoader(loadingManager).load(data.texture)
+        this.planet = new THREE.Mesh(
+            new THREE.SphereGeometry(data.radius),
+            new THREE.MeshStandardMaterial({ map: texture })
+        )
+        this.group.add(this.planet)
+
+        // Create hitbox
+        const hitboxRadius = 10 // Uniform size for all planets
+        const hitboxGeometry = new THREE.SphereGeometry(hitboxRadius)
+        const hitboxMaterial = new THREE.MeshBasicMaterial({ 
+            visible: false, // Make it invisible
+            transparent: true,
+            opacity: 0.5 // Set to a value > 0 if you want to see it for debugging
+        })
+        this.hitbox = new THREE.Mesh(hitboxGeometry, hitboxMaterial)
+        this.hitbox.userData.planet = this // Store a reference to the planet in the hitbox
+        this.group.add(this.hitbox)
+
+        // Add group to the scene
+        SceneManager.getInstance().addObject(this.group)
+
+        this.orbitLine = this.createOrbitLine(0xFFFF00)
         SceneManager.getInstance().addObject(this.orbitLine)
     }
-
 
     orbit(elapsedTime: number) {
         // Convert elapsed time to days
@@ -41,8 +64,11 @@ export class Planet {
 
         // Orbital motion
         const orbitalAngle = this.initialAngle + (elapsedDays * 2 * Math.PI / this.orbitalPeriod);
-        this.planet.position.x = Math.cos(orbitalAngle) * this.orbitRadius;
-        this.planet.position.z = Math.sin(orbitalAngle) * this.orbitRadius;
+        const x = Math.cos(orbitalAngle) * this.orbitRadius;
+        const z = Math.sin(orbitalAngle) * this.orbitRadius;
+        
+        // Move the entire group
+        this.group.position.set(x, 0, z);
 
         // Rotational motion
         const rotationAngle = (elapsedDays / this.rotationPeriod) * 2 * Math.PI;
@@ -80,9 +106,8 @@ export class Planet {
         this.orbitLine.visible = visible
     }
 
-
     dispose() {
-        SceneManager.getInstance().removeObject(this.planet)
+        SceneManager.getInstance().removeObject(this.group)
         SceneManager.getInstance().removeObject(this.orbitLine)
     }
 }

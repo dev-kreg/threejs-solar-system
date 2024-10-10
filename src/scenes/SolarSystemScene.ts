@@ -39,7 +39,7 @@ export class SolarSystemScene {
 
     private setupEnvironment() {
         const rgbeLoader = new RGBELoader()
-        rgbeLoader.load('./assets/HDR_blue_nebulae.hdr', (envMap) => {
+        rgbeLoader.load('HDR_blue_nebulae.hdr', (envMap) => {
             envMap.mapping = THREE.EquirectangularReflectionMapping
             this.sceneManager.scene.background = envMap
             this.sceneManager.scene.environment = envMap

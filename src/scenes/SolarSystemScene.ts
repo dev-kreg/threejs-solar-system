@@ -74,11 +74,11 @@ export class SolarSystemScene {
     }
 
     private setupEnvironment() {
-        const rgbeLoader = new RGBELoader(this.loadingManager)
-        rgbeLoader.load('HDR_blue_nebulae.hdr', (envMap) => {
-            envMap.mapping = THREE.EquirectangularReflectionMapping
-            this.sceneManager.scene.background = envMap
-            this.sceneManager.scene.environment = envMap
+        const textureLoader = new THREE.TextureLoader(this.loadingManager)
+        textureLoader.load('HDR_blue_nebulae.webp', (texture) => {
+            texture.mapping = THREE.EquirectangularReflectionMapping
+            this.sceneManager.scene.background = texture
+            this.sceneManager.scene.environment = texture
         })
     }
 

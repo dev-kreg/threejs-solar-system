@@ -9,14 +9,26 @@
 </head>
 <body>
     <canvas class="webgl"></canvas>
+    
+    <div id="planet-detail-view" class="planet-detail-view">
+        <button id="close-detail-view" class="close-button">Close</button>
+        <canvas id="planet-detail-canvas"></canvas>
+        <div id="planet-info"></div>
+    </div>
+
+    <div id="date-display">
+        <span id="simulated-date"></span>
+    </div>
+
+
     <div id="loading-overlay">
         <div id="loader"></div>
         <p id="loading-text"></p>
     </div>
+
     <div id="error-container"></div>
-    <div id="date-display">
-        <span id="simulated-date"></span>
-    </div>
+
+
     <script type="module" src="./main.ts"></script>
 </body>
 </html>

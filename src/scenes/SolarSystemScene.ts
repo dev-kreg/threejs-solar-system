@@ -4,6 +4,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { Planet } from '../components/Planet'
 import { planetaryData, sunData } from '../constants/PlanetaryData'
 import { SceneManager } from '../utils/SceneManager'
+import { PlanetDetailScene } from './PlanetDetailScene'
 
 export class SolarSystemScene {
     private sceneManager: SceneManager
@@ -12,9 +13,14 @@ export class SolarSystemScene {
     private bloomPass!: UnrealBloomPass
     private loadingManager: THREE.LoadingManager
     public isLoaded: boolean = false
+    private raycaster: THREE.Raycaster
+    private mouse: THREE.Vector2
+    private planetDetailScene: PlanetDetailScene;
+    private hoveredPlanet: Planet | null = null;
 
     constructor(canvas: HTMLCanvasElement) {
         this.sceneManager = SceneManager.initialize(canvas)
+        this.planetDetailScene = new PlanetDetailScene(this.sceneManager.scene, this.sceneManager.camera);
         this.loadingManager = new THREE.LoadingManager(
             // onLoad
             () => {
@@ -39,14 +45,14 @@ export class SolarSystemScene {
                 const error = document.createElement('p')
                 error.textContent = `Failed to load: ${url}`
                 errorContainer.appendChild(error)
-            
+
                 window.setTimeout(() => {
                     error.style.opacity = '0'
                     error.addEventListener('transitionend', () => {
                         errorContainer.removeChild(error)
                     })
                 }, 4000)
-            
+
                 console.error(`There was an error loading ${url}`)
             }
         )
@@ -54,6 +60,14 @@ export class SolarSystemScene {
         this.setupLighting()
         this.setupEnvironment()
         this.createCelestialBodies()
+
+        // Initialize raycaster and mouse vector for click detection
+        this.raycaster = new THREE.Raycaster()
+        this.mouse = new THREE.Vector2()
+
+        // Add click event listener
+        canvas.addEventListener('mousemove', this.onCanvasMouseMove.bind(this));
+        canvas.addEventListener('click', this.onCanvasClick.bind(this));
     }
 
     private setupLighting() {
@@ -95,22 +109,77 @@ export class SolarSystemScene {
         this.planets = planetaryData.map(data => new Planet(data, initialDate, this.loadingManager))
     }
 
-    update(elapsedTime: number) {
-        if (!this.isLoaded) return
-
-        this.planets?.forEach(planet => planet.orbit(elapsedTime))
-
-        const rotationAngle = (elapsedTime % sunData.rotationPeriod) / sunData.rotationPeriod * 2 * Math.PI
-        this.sun.rotation.y = -rotationAngle
-
-        this.sceneManager.update()
-    }
-
     setOrbitLineVisibility(visible: boolean) {
         this.planets?.forEach(planet => planet.setOrbitLineVisibility(visible))
     }
 
     getBloomPass() {
         return this.bloomPass
+    }
+
+    private onCanvasMouseMove(event: MouseEvent) {
+        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+        this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
+
+        const intersects = this.raycaster.intersectObjects(this.sceneManager.scene.children);
+
+        let hoveredObject: Planet | null = null;
+
+        for (let intersect of intersects) {
+            const planet = this.planets?.find(p => p.mesh === intersect.object || p.orbitHitbox === intersect.object);
+            
+            if (planet) {
+                hoveredObject = planet;
+                break;
+            }
+        }
+
+        if (this.hoveredPlanet !== hoveredObject) {
+            if (this.hoveredPlanet) {
+                this.hoveredPlanet.highlightOrbit(false);
+            }
+            if (hoveredObject) {
+                hoveredObject.highlightOrbit(true);
+            }
+            this.hoveredPlanet = hoveredObject;
+        }
+    }
+
+    private onCanvasClick(event: MouseEvent) {
+        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+        this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
+
+        const intersects = this.raycaster.intersectObjects(this.sceneManager.scene.children);
+
+        for (let intersect of intersects) {
+            const clickedPlanet = this.planets?.find(planet => 
+                planet.mesh === intersect.object || planet.orbitHitbox === intersect.object
+            );
+            if (clickedPlanet) {
+                console.log(`Clicked on ${clickedPlanet.data.name}:`, clickedPlanet.data);
+                this.planetDetailScene.show(clickedPlanet);
+                break;
+            }
+        }
+    }
+
+    update(elapsedTime: number) {
+        if (!this.isLoaded) return;
+
+        this.planets?.forEach(planet => planet.orbit(elapsedTime));
+
+        const rotationAngle = (elapsedTime % sunData.rotationPeriod) / sunData.rotationPeriod * 2 * Math.PI;
+        this.sun.rotation.y = -rotationAngle;
+
+        this.sceneManager.update();
+
+        // Update hover state
+        if (this.hoveredPlanet) {
+            this.hoveredPlanet.highlightOrbit(true);
+        }
     }
 }

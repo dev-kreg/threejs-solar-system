@@ -106,3 +106,36 @@ body {
     display: none;
     /* shown when loading complete */
 }
+
+.planet-detail-view {
+    position: absolute; /* Changed from fixed to absolute */
+    width: 300px;
+    height: 300px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    transition: all 0.05s ease; /* Add smooth transition for movement */
+}
+
+.planet-detail-view canvas {
+    width: 300px;
+    height: 200px;
+}
+
+.planet-detail-view .close-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: transparent;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#planet-info {
+    padding: 10px;
+    color: white;
+    font-family: Arial, sans-serif;
+}

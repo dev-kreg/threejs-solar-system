@@ -17,6 +17,9 @@ export class SolarSystemScene {
     private mouse: THREE.Vector2
     private planetDetailScene: PlanetDetailScene;
     private hoveredPlanet: Planet | null = null;
+    private isDragging: boolean = false;
+    private dragStartTime: number = 0;
+    private dragThreshold: number = 100; // milliseconds
 
     constructor(canvas: HTMLCanvasElement) {
         this.sceneManager = SceneManager.initialize(canvas)
@@ -63,9 +66,9 @@ export class SolarSystemScene {
         this.raycaster = new THREE.Raycaster()
         this.mouse = new THREE.Vector2()
 
-        // Add click event listener
+        canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
         canvas.addEventListener('mousemove', this.onCanvasMouseMove.bind(this));
-        canvas.addEventListener('click', this.onCanvasClick.bind(this));
+        canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
     }
 
     private setupLighting() {
@@ -114,8 +117,23 @@ export class SolarSystemScene {
     getBloomPass() {
         return this.bloomPass
     }
+    private onMouseDown(event: MouseEvent) {
+        this.isDragging = false;
+        this.dragStartTime = Date.now();
+    }
+
+    private onMouseUp(event: MouseEvent) {
+        if (!this.isDragging) {
+            this.onCanvasClick(event);
+        }
+        this.isDragging = false;
+    }
 
     private onCanvasMouseMove(event: MouseEvent) {
+        if (Date.now() - this.dragStartTime > this.dragThreshold) {
+            this.isDragging = true;
+        }
+
         this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
@@ -155,6 +173,8 @@ export class SolarSystemScene {
     }
 
     private onCanvasClick(event: MouseEvent) {
+        if (this.isDragging) return;
+
         this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 

@@ -78,7 +78,7 @@ export class Planet {
     }
 
     createOrbitHitbox(): THREE.Mesh {
-        const tubeRadius = 2 // Adjust this value to change the hitbox size
+        const tubeRadius = 8 // Adjust this value to change the hitbox size
         const tubeSegments = 128
         const tubeRadialSegments = 8
         const geometry = new THREE.TorusGeometry(this.data.orbitRadius, tubeRadius, tubeRadialSegments, tubeSegments)
@@ -93,7 +93,7 @@ export class Planet {
     }
 
     highlightOrbit(highlight: boolean) {
-        const highlightColor = 0x00FFFF;
+        const highlightColor = 0x20C20E;
         const normalColor = 0xFFFFFF;
         const highlightOpacity = 0.8;
         const normalOpacity = 0.2;

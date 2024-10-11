@@ -8,6 +8,12 @@
     top: 0;
     left: 0;
     outline: none;
+    overflow: none;
+}
+html,
+body
+{
+    overflow: hidden;
 }
 
 body {

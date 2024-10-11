@@ -112,8 +112,8 @@ export class PlanetDetailScene {
             left = x - offset - detailViewWidth;
         }
 
-        left = Math.max(10, Math.min(left, window.innerWidth - detailViewWidth - 10));
-        top = Math.max(10, Math.min(top, window.innerHeight - detailViewHeight - 10));
+        left = Math.max(100, Math.min(left, window.innerWidth - detailViewWidth - 10));
+        top = Math.max(100, Math.min(top, window.innerHeight - detailViewHeight - 10));
 
         this.container.style.left = `${left}px`;
         this.container.style.top = `${top}px`;
@@ -139,7 +139,7 @@ export class PlanetDetailScene {
         this.connectionLine.style.width = `${length}px`;
         this.connectionLine.style.transform = `translate(${planetX}px, ${planetY}px) rotate(${angle}deg)`;
         this.connectionLine.style.transformOrigin = '0 0'; // Changed to top-left corner
-        this.connectionLine.style.borderTop = '2px dashed green';
+        this.connectionLine.style.borderTop = '2px dashed #20C20E';
     }
 
     private startRendering() {

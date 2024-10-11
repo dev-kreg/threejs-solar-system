@@ -9,6 +9,9 @@ export class Planet {
     orbitHitbox: THREE.Mesh
     data: PlanetData
 
+    private semiMajorAxis: number
+    private eccentricity: number
+
     constructor(
         data: PlanetData,
         initialDate: Date,
@@ -21,6 +24,10 @@ export class Planet {
             new THREE.MeshStandardMaterial({ map: texture })
         )
         this.data = data;
+
+        // Calculate semi-major axis and eccentricity
+        this.semiMajorAxis = (this.data.perihelion + this.data.aphelion) / 2;
+        this.eccentricity = (this.data.aphelion - this.data.perihelion) / (this.data.aphelion + this.data.perihelion);
 
         this.initialAngle = this.calculateInitialAngle(initialDate, referenceDate)
 
@@ -35,19 +42,80 @@ export class Planet {
         this.orbitHitbox.userData.hoverCursor = 'pointer';
     }
 
-
     orbit(elapsedTime: number) {
         // Convert elapsed time to days
         const elapsedDays = elapsedTime / (24 * 60 * 60);
 
-        // Orbital motion
-        const orbitalAngle = this.initialAngle + (elapsedDays * 2 * Math.PI / this.data.orbitalPeriod);
-        this.mesh.position.x = Math.cos(orbitalAngle) * this.data.orbitRadius;
-        this.mesh.position.z = Math.sin(orbitalAngle) * this.data.orbitRadius;
+        // Calculate the planet's position on its elliptical orbit
+        const angle = this.initialAngle + (elapsedDays * 2 * Math.PI / this.data.orbitalPeriod);
+        const r = this.semiMajorAxis * (1 - this.eccentricity * this.eccentricity) / (1 + this.eccentricity * Math.cos(angle));
+
+        // Apply inclination
+        const inclination = this.data.orbitalInclination * Math.PI / 180; // Convert to radians
+        const x = r * Math.cos(angle);
+        const y = r * Math.sin(angle) * Math.sin(inclination);
+        const z = r * Math.sin(angle) * Math.cos(inclination);
+
+        this.mesh.position.set(x, y, z);
 
         // Rotational motion
         const rotationAngle = (elapsedDays / this.data.rotationPeriod) * 2 * Math.PI;
         this.mesh.rotation.y = -rotationAngle;
+    }
+
+    createOrbitLine(color: number): THREE.Line {
+        const segments = 360
+        const points = []
+
+        for (let i = 0; i <= segments; i++) {
+            const angle = (i / segments) * Math.PI * 2
+            const r = this.semiMajorAxis * (1 - this.eccentricity * this.eccentricity) / (1 + this.eccentricity * Math.cos(angle));
+            
+            // Apply inclination
+            const inclination = this.data.orbitalInclination * Math.PI / 180; // Convert to radians
+            const x = r * Math.cos(angle);
+            const y = r * Math.sin(angle) * Math.sin(inclination);
+            const z = r * Math.sin(angle) * Math.cos(inclination);
+
+            points.push(new THREE.Vector3(x, y, z))
+        }
+
+        const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points)
+        const orbitMaterial = new THREE.LineBasicMaterial({ color: color, linewidth: 1, opacity: 0.2, transparent: true })
+        return new THREE.Line(orbitGeometry, orbitMaterial)
+    }
+
+    createOrbitHitbox(): THREE.Mesh {
+        const baseRadius = 0.5; // Base radius for inner planets
+        const scaleFactor = 0.025; // Adjust this to control how much the hitbox grows with distance
+        const tubeRadius = baseRadius + (this.semiMajorAxis * scaleFactor);
+        
+        const tubeSegments = 360
+        const tubeRadialSegments = 8
+        const curvePoints = []
+
+        for (let i = 0; i <= tubeSegments; i++) {
+            const angle = (i / tubeSegments) * Math.PI * 2
+            const r = this.semiMajorAxis * (1 - this.eccentricity * this.eccentricity) / (1 + this.eccentricity * Math.cos(angle));
+            
+            // Apply inclination
+            const inclination = this.data.orbitalInclination * Math.PI / 180; // Convert to radians
+            const x = r * Math.cos(angle);
+            const y = r * Math.sin(angle) * Math.sin(inclination);
+            const z = r * Math.sin(angle) * Math.cos(inclination);
+
+            curvePoints.push(new THREE.Vector3(x, y, z))
+        }
+
+        const curve = new THREE.CatmullRomCurve3(curvePoints)
+        const geometry = new THREE.TubeGeometry(curve, tubeSegments, tubeRadius, tubeRadialSegments, true)
+        const material = new THREE.MeshBasicMaterial({
+            visible: false,
+            // color: 'red'
+        })
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.userData.hoverCursor = 'pointer';
+        return mesh;
     }
 
     calculateInitialAngle(initialDate: Date, referenceDate: Date): number {
@@ -59,36 +127,6 @@ export class Planet {
 
         // Normalize the angle to be between 0 and 2π
         return angle % (2 * Math.PI)
-    }
-
-    createOrbitLine(color: number): THREE.Line {
-        const segments = 128
-        const points = []
-
-        for (let i = 0; i <= segments; i++) {
-            const theta = (i / segments) * Math.PI * 2
-            const x = this.data.orbitRadius * Math.cos(theta)
-            const z = this.data.orbitRadius * Math.sin(theta)
-            points.push(new THREE.Vector3(x, 0, z))
-        }
-
-        const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points)
-        const orbitMaterial = new THREE.LineBasicMaterial({ color: color, linewidth: 1, opacity: 0.2, transparent: true })
-        return new THREE.Line(orbitGeometry, orbitMaterial)
-    }
-
-    createOrbitHitbox(): THREE.Mesh {
-        const tubeRadius = 8 // Adjust this value to change the hitbox size
-        const tubeSegments = 128
-        const tubeRadialSegments = 8
-        const geometry = new THREE.TorusGeometry(this.data.orbitRadius, tubeRadius, tubeRadialSegments, tubeSegments)
-        geometry.rotateX(Math.PI / 2);
-        const material = new THREE.MeshBasicMaterial({
-            visible: false,
-        })
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.userData.hoverCursor = 'pointer'; // Add cursor style to the orbit hitbox
-        return mesh;
     }
 
     highlightOrbit(highlight: boolean) {

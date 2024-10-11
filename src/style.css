@@ -10,9 +10,9 @@
     outline: none;
     overflow: none;
 }
+
 html,
-body
-{
+body {
     overflow: hidden;
 }
 
@@ -113,23 +113,6 @@ body {
     display: none;
 }
 
-#planet-detail-view {
-    position: absolute;
-    width: 300px;
-    height: 300px;
-    background-color: rgba(0, 0, 0, 0.8);
-    border-radius: 10px;
-    display: none;
-    flex-direction: column;
-    z-index: 20;
-    overflow: hidden;
-}
-
-#planet-detail-view canvas {
-    width: 300px;
-    height: 200px;
-}
-
 .close-button {
     position: absolute;
     top: 10px;
@@ -162,12 +145,101 @@ body {
     height: 16px;
 }
 
-#planet-info {
-    padding: 10px;
+#planet-detail-view {
+    position: absolute;
+    width: 300px;
+    height: 450px;  /* Increased to accommodate larger tab-content */
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    display: none;
+    flex-direction: column;
+    z-index: 20;
+    overflow: hidden;
     color: white;
     font-family: Arial, sans-serif;
+}
+
+#planet-detail-view canvas {
+    width: 300px;
+    height: 150px;
+}
+
+#planet-info {
+    padding: 15px;
     overflow-y: auto;
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#planet-info h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #3498db;
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.tabs button {
+    background-color: #34495e;
+    border: none;
+    color: white;
+    padding: 8px;
+    cursor: pointer;
+    flex-grow: 1;
+    transition: background-color 0.3s;
+    font-size: 12px;
+}
+
+.tabs button:hover {
+    background-color: #2c3e50;
+}
+
+.tabs button.active {
+    background-color: #2980b9;
+}
+
+.tab-content {
+    height: 200px;  /* Set to desired height */
+    overflow-y: auto;
+    padding-right: 5px;  /* Add some padding for the scrollbar */
+}
+
+.tab-content h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #2ecc71;
+}
+
+.tab-content p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.tab-content p strong {
+    color: #f39c12;
+}
+
+/* Add styles for the scrollbar */
+.tab-content::-webkit-scrollbar {
+    width: 5px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+    background: #2c3e50;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+    background: #3498db;
+    border-radius: 5px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+    background: #2980b9;
 }
 
 #connection-line {

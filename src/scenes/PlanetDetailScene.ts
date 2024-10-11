@@ -103,17 +103,18 @@ export class PlanetDetailScene {
 
         const detailViewWidth = this.container.offsetWidth;
         const detailViewHeight = this.container.offsetHeight;
-        const offset = 50;
+        const margin = 50; // Margin from screen edges
 
-        let left = x + offset;
-        let top = (y + detailViewHeight / 2) - 100;
+        let left = x + margin;
+        let top = y - detailViewHeight / 2 + 100;
 
-        if (left + detailViewWidth > window.innerWidth) {
-            left = x - offset - detailViewWidth;
+        // Ensure the view stays within the screen bounds with the specified margin
+        if (left + detailViewWidth > window.innerWidth - margin) {
+            left = x - margin - detailViewWidth;
         }
 
-        left = Math.max(100, Math.min(left, window.innerWidth - detailViewWidth - 10));
-        top = Math.max(100, Math.min(top, window.innerHeight - detailViewHeight - 10));
+        left = Math.max(margin, Math.min(left, window.innerWidth - detailViewWidth - margin));
+        top = Math.max(margin, Math.min(top, window.innerHeight - detailViewHeight - margin));
 
         this.container.style.left = `${left}px`;
         this.container.style.top = `${top}px`;

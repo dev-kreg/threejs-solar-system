@@ -122,7 +122,6 @@ body {
     display: none;
     flex-direction: column;
     z-index: 20;
-    transition: all 0.05s ease;
     overflow: hidden;
 }
 

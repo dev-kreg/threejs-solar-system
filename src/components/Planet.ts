@@ -84,8 +84,7 @@ export class Planet {
         const geometry = new THREE.TorusGeometry(this.data.orbitRadius, tubeRadius, tubeRadialSegments, tubeSegments)
         geometry.rotateX(Math.PI / 2);
         const material = new THREE.MeshBasicMaterial({
-            transparent: true,
-            opacity: 0
+            visible: false,
         })
         const mesh = new THREE.Mesh(geometry, material);
         mesh.userData.hoverCursor = 'pointer'; // Add cursor style to the orbit hitbox

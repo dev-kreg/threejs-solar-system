@@ -35,9 +35,7 @@ export class SolarSystemScene {
             // onProgress
             (url, itemsLoaded, itemsTotal) => {
                 const loadingText = document.getElementById('loading-text')
-
                 loadingText!.textContent = `Loading assets... (${itemsLoaded}/${itemsTotal})`
-                console.log(`Loading file: ${url}. ${itemsLoaded} of ${itemsTotal} files.`)
             },
             // onError
             (url) => {
@@ -126,14 +124,23 @@ export class SolarSystemScene {
         const intersects = this.raycaster.intersectObjects(this.sceneManager.scene.children);
 
         let hoveredObject: Planet | null = null;
+        let cursorChanged = false;
 
         for (let intersect of intersects) {
             const planet = this.planets?.find(p => p.mesh === intersect.object || p.orbitHitbox === intersect.object);
             
             if (planet) {
                 hoveredObject = planet;
+                if (intersect.object.userData.hoverCursor) {
+                    document.body.style.cursor = intersect.object.userData.hoverCursor;
+                    cursorChanged = true;
+                }
                 break;
             }
+        }
+
+        if (!cursorChanged) {
+            document.body.style.cursor = 'default';
         }
 
         if (this.hoveredPlanet !== hoveredObject) {
@@ -160,8 +167,11 @@ export class SolarSystemScene {
                 planet.mesh === intersect.object || planet.orbitHitbox === intersect.object
             );
             if (clickedPlanet) {
-                console.log(`Clicked on ${clickedPlanet.data.name}:`, clickedPlanet.data);
-                this.planetDetailScene.show(clickedPlanet);
+                if (this.planetDetailScene.planet === clickedPlanet) {
+                    this.planetDetailScene.hide();
+                } else {
+                    this.planetDetailScene.show(clickedPlanet);
+                }
                 break;
             }
         }

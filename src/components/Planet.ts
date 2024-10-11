@@ -29,6 +29,10 @@ export class Planet {
         this.orbitHitbox = this.createOrbitHitbox()
         SceneManager.getInstance().addObject(this.orbitLine)
         SceneManager.getInstance().addObject(this.orbitHitbox)
+        
+        // Add cursor styles
+        this.mesh.userData.hoverCursor = 'pointer';
+        this.orbitHitbox.userData.hoverCursor = 'pointer';
     }
 
 
@@ -83,7 +87,9 @@ export class Planet {
             transparent: true,
             opacity: 0
         })
-        return new THREE.Mesh(geometry, material)
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.userData.hoverCursor = 'pointer'; // Add cursor style to the orbit hitbox
+        return mesh;
     }
 
     highlightOrbit(highlight: boolean) {

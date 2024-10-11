@@ -12,6 +12,8 @@ export class PlanetDetailScene {
     private animationFrameId: number | null = null;
     private mainCamera: THREE.Camera;
     private connectionLine!: HTMLElement;
+    private cameraAngle: number = 0;
+    private cameraSpeed: number = 0.0005;
 
     public planet: Planet | null = null;
     
@@ -62,6 +64,7 @@ export class PlanetDetailScene {
         if (!canvas) throw new Error('Canvas not found in container');
 
         this.renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+        this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace
         this.renderer.setSize(320, 200);
         this.camera = new THREE.PerspectiveCamera(50, 320 / 200, 0.1, 2000);
     }
@@ -147,12 +150,20 @@ export class PlanetDetailScene {
         const planetPosition = this.planet.mesh.position.clone();
         const planetRadius = this.planet.data.radius;
 
-        // Calculate camera position
-        const cameraOffset = new THREE.Vector3(0, 0, planetRadius * 3);
-        cameraOffset.applyQuaternion(this.scene.quaternion);
-        this.camera.position.copy(planetPosition).add(cameraOffset);
+        // Calculate camera position in a circular motion
+        const distance = planetRadius * 4;
+        const height = planetRadius * 0.5;
 
+        const x = Math.cos(this.cameraAngle) * distance;
+        const z = Math.sin(this.cameraAngle) * distance;
+
+        const cameraPosition = new THREE.Vector3(x, height, z);
+        cameraPosition.add(planetPosition);
+
+        this.camera.position.copy(cameraPosition);
         this.camera.lookAt(planetPosition);
+
+        this.cameraAngle += this.cameraSpeed;
     }
 
     private updateDetailViewPosition() {

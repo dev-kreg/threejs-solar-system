@@ -8,6 +8,7 @@ export class Planet {
     orbitLine: THREE.Line
     orbitHitbox: THREE.Mesh
     data: PlanetData
+    ring?: THREE.Mesh
 
     private semiMajorAxis: number
     private eccentricity: number
@@ -18,7 +19,8 @@ export class Planet {
         loadingManager: THREE.LoadingManager,
         referenceDate: Date = new Date('2000-01-01T12:00:00Z') // J2000 epoch
     ) {
-        const texture = new THREE.TextureLoader(loadingManager).load(data.texture)
+        const textureLoader = new THREE.TextureLoader(loadingManager)
+        const texture = textureLoader.load(data.texture)
         this.mesh = new THREE.Mesh(
             new THREE.SphereGeometry(data.radius),
             new THREE.MeshStandardMaterial({ map: texture })
@@ -40,6 +42,12 @@ export class Planet {
         // Add cursor styles
         this.mesh.userData.hoverCursor = 'pointer';
         this.orbitHitbox.userData.hoverCursor = 'pointer';
+
+        
+        // Create ring if the planet has one
+        if (data.ring) {
+            this.createRing(data.ring, textureLoader);
+        }
     }
 
     orbit(elapsedTime: number) {
@@ -61,6 +69,43 @@ export class Planet {
         // Rotational motion
         const rotationAngle = (elapsedDays / this.data.rotationPeriod) * 2 * Math.PI;
         this.mesh.rotation.y = -rotationAngle;
+    }
+
+    private createRing(ringData: { innerRadius: number, outerRadius: number, texture: string, alphaMap: string }, textureLoader: THREE.TextureLoader) {
+        const ringTexture = textureLoader.load(ringData.texture);
+        const ringAlpha = textureLoader.load(ringData.alphaMap);
+        ringTexture.wrapS = THREE.RepeatWrapping;
+
+        const geometry = new THREE.RingGeometry(
+            ringData.innerRadius,
+            ringData.outerRadius,
+            64 // thetaSegments
+        );
+
+        // Custom UV mapping
+        const pos = geometry.attributes.position;
+        const uvs = new Float32Array(pos.count * 2);
+        const v3 = new THREE.Vector3();
+        for (let i = 0; i < pos.count; i++) {
+            v3.fromBufferAttribute(pos, i);
+            const u = (Math.atan2(v3.y, v3.x) + Math.PI) / (2 * Math.PI);
+            const v = (v3.length() - ringData.innerRadius) / (ringData.outerRadius - ringData.innerRadius);
+            uvs[i * 2] = u;
+            uvs[i * 2 + 1] = v;
+        }
+        geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+
+        const material = new THREE.MeshStandardMaterial({
+            map: ringTexture,
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+            transparent: true,
+            alphaMap: ringAlpha
+        });
+
+        this.ring = new THREE.Mesh(geometry, material);
+        this.ring.rotation.x = Math.PI / 2;
+        this.mesh.add(this.ring);
     }
 
     createOrbitLine(color: number): THREE.Line {

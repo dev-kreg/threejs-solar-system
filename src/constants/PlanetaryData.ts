@@ -23,6 +23,12 @@ export interface PlanetData {
     numberOfMoons: number;
     hasRingSystem: boolean;
     hasGlobalMagneticField: boolean | string;
+    ring?: {
+        innerRadius: number;
+        outerRadius: number;
+        texture: string;
+        alphaMap: string;
+    };
 }
 
 export const planetaryData: PlanetData[] = [
@@ -180,7 +186,13 @@ export const planetaryData: PlanetData[] = [
         surfacePressure: "Unknown",
         numberOfMoons: 146,
         hasRingSystem: true,
-        hasGlobalMagneticField: true
+        hasGlobalMagneticField: true,
+        ring: {
+            innerRadius: 16.05, // Adjust these values as needed
+            outerRadius: 29.5,   // Adjust these values as needed
+            texture: 'saturnringcolor.jpg',
+            alphaMap: 'saturnringpattern.jpg'
+        }
     },
     {
         name: "Uranus",

@@ -72,7 +72,7 @@ export class SolarSystemScene {
     }
 
     private setupLighting() {
-        const pointLight = new THREE.PointLight('#fefde7', 1000, 0, 1.2)
+        const pointLight = new THREE.PointLight('#fefde7', 750, 0, 1)
         pointLight.position.set(0, 0, 0)
         this.sceneManager.addObject(pointLight)
 

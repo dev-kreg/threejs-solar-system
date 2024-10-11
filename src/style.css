@@ -71,7 +71,7 @@ body {
 
 #error-container {
     position: fixed;
-    bottom: 10px;
+    bottom: 100px;
     right: 10px;
     z-index: 1000;
     display: flex;

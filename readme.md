@@ -16,6 +16,8 @@
 ## Features
 
 - Realistic orbital periods and rotations for each planet
+- Interactive orbits and planet selection
+- Detailed planet view with close-up 3D rendering and information
 - Adjustable time scale
 - Toggleable orbit lines
 - Bloom effect for enhanced visuals
@@ -30,6 +32,14 @@ While this simulation aims to provide a representation of our solar system, it h
 4. The simulation does not account for gravitational interactions between planets or other celestial bodies.
 5. No moons! 
 
+
 ## Controls
 
-Use the GUI in the top-right corner to adjust the time scale and toggle orbit lines. Click and drag to rotate the view, scroll to zoom in/out.
+- Use the GUI in the top-right corner to adjust the time scale and toggle orbit lines.
+- Click and drag to rotate the view, scroll to zoom in/out.
+- Hover over planets or their orbits to highlight the orbit.
+- Click on a planet or its orbit to open a detailed view, showing:
+  - A close-up 3D view of the selected planet
+  - Key information about the planet (name, radius, orbit radius, orbital period)
+- The detail view follows the planet's position on the screen as it orbits.
+- Use the close button on the detail view to return to the main solar system view.

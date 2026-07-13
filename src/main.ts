@@ -27,17 +27,21 @@ if (new URLSearchParams(location.search).has('debug')) {
     tick()
 }
 
-const dateDisplay = document.getElementById('simulated-date')!
+const datePicker = document.getElementById('date-picker') as HTMLInputElement
 const initialDate = new Date()
+
+datePicker.addEventListener('change', () => {
+    if (timeManager && datePicker.valueAsDate) {
+        timeManager.setTime((datePicker.valueAsDate.getTime() - initialDate.getTime()) / 1000)
+    }
+})
 
 function updateDateDisplay(elapsedTime: number) {
     const milliseconds = initialDate.getTime() + elapsedTime * 1000
-    const currentDate = new Date(milliseconds)
-    dateDisplay.textContent = currentDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit'
-      });
+    // Keep picker in sync unless the user is in it; skip outside Date's ISO range
+    if (document.activeElement !== datePicker && milliseconds > 0 && milliseconds < 8.64e15) {
+        datePicker.value = new Date(milliseconds).toISOString().slice(0, 10)
+    }
 }
 
 function animate() {

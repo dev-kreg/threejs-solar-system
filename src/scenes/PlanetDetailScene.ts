@@ -5,24 +5,42 @@ export class PlanetDetailScene {
     private container!: HTMLElement;
     private planetInfo!: HTMLElement;
     private closeButton!: HTMLElement;
-    private renderer!: THREE.WebGLRenderer;
-    private camera!: THREE.PerspectiveCamera;
-    private scene: THREE.Scene;
     private animationFrameId: number | null = null;
     private mainCamera: THREE.Camera;
     private connectionLine!: HTMLElement;
-    private cameraAngle: number = 0;
-    private cameraSpeed: number = 0.0005;
 
     public planet: Planet | null = null;
-    
-    private activeTab: string = 'physical';
 
-    constructor(scene: THREE.Scene, mainCamera: THREE.Camera) {
-        this.scene = scene;
+    private activeTab: string = 'physical';
+    private dragged: boolean = false; // user moved the panel; stop auto-positioning it
+
+    constructor(mainCamera: THREE.Camera) {
         this.mainCamera = mainCamera;
         this.initializeElements();
-        this.setupRenderer();
+        this.makeDraggable();
+    }
+
+    private makeDraggable() {
+        this.container.addEventListener('pointerdown', (e: PointerEvent) => {
+            if (window.innerWidth <= 768) return; // bottom sheet on phones, not draggable
+            if ((e.target as HTMLElement).closest('button, .tab-content')) return;
+            e.preventDefault();
+            this.container.style.cursor = 'grabbing';
+            const grabX = e.clientX - this.container.offsetLeft;
+            const grabY = e.clientY - this.container.offsetTop;
+            const move = (ev: PointerEvent) => {
+                this.dragged = true;
+                this.container.style.left = `${ev.clientX - grabX}px`;
+                this.container.style.top = `${ev.clientY - grabY}px`;
+            };
+            const up = () => {
+                this.container.style.cursor = '';
+                window.removeEventListener('pointermove', move);
+                window.removeEventListener('pointerup', up);
+            };
+            window.addEventListener('pointermove', move);
+            window.addEventListener('pointerup', up);
+        });
     }
 
     private setupTabListeners() {
@@ -57,23 +75,21 @@ export class PlanetDetailScene {
         document.body.appendChild(this.connectionLine);
     }
 
-    private setupRenderer() {
-        const canvas = this.container.querySelector('canvas');
-        if (!canvas) throw new Error('Canvas not found in container');
-
-        this.renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
-        this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace
-        this.renderer.setSize(320, 200);
-        this.camera = new THREE.PerspectiveCamera(50, 320 / 200, 0.1, 2000);
-    }
-
+    // Selects the planet but keeps the panel hidden; reveal() shows it once the
+    // camera fly-in finishes (SolarSystemScene calls it)
     show(planet: Planet) {
         this.planet = planet;
+        this.dragged = false;
+        this.container.style.display = 'none';
+        this.connectionLine.style.display = 'none';
+        this.updatePlanetInfo();
+        this.startTracking();
+    }
+
+    reveal() {
+        if (!this.planet) return;
         this.container.style.display = 'flex';
         this.connectionLine.style.display = 'block';
-        this.updatePlanetInfo();
-        this.updateCameraPosition();
-        this.startRendering();
     }
 
     hide() {
@@ -143,29 +159,9 @@ export class PlanetDetailScene {
         this.setupTabListeners();
     }
 
-    private updateCameraPosition() {
-        if (!this.planet) return;
-        const planetPosition = this.planet.mesh.position.clone();
-        const planetRadius = this.planet.data.radius;
-
-        // Calculate camera position in a circular motion
-        const distance = planetRadius * 4;
-        const height = planetRadius * 0.5;
-
-        const x = Math.cos(this.cameraAngle) * distance;
-        const z = Math.sin(this.cameraAngle) * distance;
-
-        const cameraPosition = new THREE.Vector3(x, height, z);
-        cameraPosition.add(planetPosition);
-
-        this.camera.position.copy(cameraPosition);
-        this.camera.lookAt(planetPosition);
-
-        this.cameraAngle += this.cameraSpeed;
-    }
-
     private updateDetailViewPosition() {
         if (!this.planet) return;
+        if (window.innerWidth <= 768) return; // CSS pins it as a bottom sheet on phones
 
         const planetPosition = this.planet.mesh.position.clone();
         const screenPosition = planetPosition.project(this.mainCamera);
@@ -177,22 +173,27 @@ export class PlanetDetailScene {
         const detailViewHeight = this.container.offsetHeight;
         const margin = 50; // Margin from screen edges
 
-        let left = x + margin;
-        let top = y - detailViewHeight / 2 + 100;
+        if (!this.dragged) {
+            // The followed planet sits centered and large on screen, so push the
+            // panel out proportionally to viewport width instead of a fixed 50px
+            const offsetX = Math.max(margin, window.innerWidth * 0.2);
+            let left = x + offsetX;
+            let top = y - detailViewHeight / 2 + 100;
 
-        // Ensure the view stays within the screen bounds with the specified margin
-        if (left + detailViewWidth > window.innerWidth - margin) {
-            left = x - margin - detailViewWidth;
+            // Ensure the view stays within the screen bounds with the specified margin
+            if (left + detailViewWidth > window.innerWidth - margin) {
+                left = x - offsetX - detailViewWidth;
+            }
+
+            left = Math.max(margin, Math.min(left, window.innerWidth - detailViewWidth - margin));
+            top = Math.max(margin, Math.min(top, window.innerHeight - detailViewHeight - margin));
+
+            this.container.style.left = `${left}px`;
+            this.container.style.top = `${top}px`;
         }
 
-        left = Math.max(margin, Math.min(left, window.innerWidth - detailViewWidth - margin));
-        top = Math.max(margin, Math.min(top, window.innerHeight - detailViewHeight - margin));
-
-        this.container.style.left = `${left}px`;
-        this.container.style.top = `${top}px`;
-
-        // Update the connection line to the top corner
-        this.updateConnectionLine(x, y, left, top);
+        // Line keeps connecting planet → panel even after a manual drag
+        this.updateConnectionLine(x, y, this.container.offsetLeft, this.container.offsetTop);
     }
 
     private updateConnectionLine(planetX: number, planetY: number, viewLeft: number, viewTop: number) {
@@ -215,13 +216,12 @@ export class PlanetDetailScene {
         this.connectionLine.style.borderTop = '2px dashed #20C20E';
     }
 
-    private startRendering() {
+    // Keeps the panel anchored to the planet's screen position (desktop only)
+    private startTracking() {
         const animate = () => {
             if (this.planet) {
                 this.animationFrameId = requestAnimationFrame(animate);
-                this.updateCameraPosition();
                 this.updateDetailViewPosition();
-                this.renderer.render(this.scene, this.camera);
             }
         };
         animate();

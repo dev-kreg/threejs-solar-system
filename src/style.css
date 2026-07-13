@@ -115,6 +115,17 @@ body {
     display: none;
 }
 
+#date-picker {
+    display: block;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    color-scheme: dark;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    padding: 2px 4px;
+    font: inherit;
+}
+
 .close-button {
     position: absolute;
     top: 10px;
@@ -147,10 +158,40 @@ body {
     height: 16px;
 }
 
+#planet-labels {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.planet-label {
+    position: absolute;
+    transform: translate(-50%, -160%);
+    pointer-events: auto;
+    cursor: pointer;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    text-shadow: 0 0 4px black;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Draggable on desktop only (pointerdown handler bails ≤768px) */
+@media (min-width: 769px) {
+    #planet-detail-view {
+        cursor: grab;
+    }
+
+    /* interactive/scrollable children aren't drag handles */
+    #planet-detail-view .tab-content {
+        cursor: auto;
+    }
+}
+
 #planet-detail-view {
     position: absolute;
     width: 300px;
-    height: 450px;  /* Increased to accommodate larger tab-content */
     background-color: rgba(0, 0, 0, 0.8);
     border-radius: 10px;
     display: none;
@@ -159,11 +200,6 @@ body {
     overflow: hidden;
     color: white;
     font-family: Arial, sans-serif;
-}
-
-#planet-detail-view canvas {
-    width: 300px;
-    height: 150px;
 }
 
 #planet-info {
@@ -264,4 +300,18 @@ body {
     min-height: 20px;
     max-height: 40px;
     width: auto;
+}
+/* Phone: detail view becomes a fixed bottom sheet instead of chasing the planet */
+@media (max-width: 768px) {
+    #planet-detail-view {
+        left: 0 !important;
+        top: auto !important;
+        bottom: 0;
+        width: 100%;
+        border-radius: 12px 12px 0 0;
+    }
+
+    #connection-line {
+        display: none !important;
+    }
 }

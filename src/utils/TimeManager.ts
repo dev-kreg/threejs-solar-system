@@ -25,4 +25,9 @@ export class TimeManager {
     setTimeScale(scale: number) {
         this.timeScale = scale;
     }
+
+    // Jump simulation to an absolute point (seconds relative to launch, may be negative)
+    setTime(seconds: number) {
+        this.accumulatedTime = seconds;
+    }
 }

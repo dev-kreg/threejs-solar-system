@@ -11,6 +11,7 @@ export class Planet {
 
     private semiMajorAxis: number
     private eccentricity: number
+    private compact: boolean = false
 
     constructor(
         data: PlanetData,
@@ -33,6 +34,11 @@ export class Planet {
 
         this.initialAngle = this.calculateInitialAngle(initialDate, referenceDate)
 
+        // Axial tilt. 'ZYX' order keeps the per-frame y spin inside the z tilt,
+        // so planets rotate around their tilted axis (rings inherit it as children)
+        this.mesh.rotation.order = 'ZYX'
+        this.mesh.rotation.z = -data.obliquityToOrbit * Math.PI / 180
+
         scene.add(this.mesh)
         this.orbitLine = this.createOrbitLine(0xFFFFFF)
         this.orbitHitbox = this.createOrbitHitbox()
@@ -47,7 +53,9 @@ export class Planet {
 
     // Position on the inclined elliptical orbit at a given true anomaly
     private orbitPointAt(angle: number): THREE.Vector3 {
-        const r = this.semiMajorAxis * (1 - this.eccentricity * this.eccentricity) / (1 + this.eccentricity * Math.cos(angle));
+        let r = this.semiMajorAxis * (1 - this.eccentricity * this.eccentricity) / (1 + this.eccentricity * Math.cos(angle));
+        // ponytail: sqrt compression pulls outer planets into view; tune the 100 if it feels off
+        if (this.compact) r = 100 * Math.sqrt(r / 100);
         const inclination = this.data.orbitalInclination * Math.PI / 180;
         return new THREE.Vector3(
             r * Math.cos(angle),
@@ -56,12 +64,23 @@ export class Planet {
         );
     }
 
+    // Kepler's equation: uniform-time mean anomaly → actual angle on the ellipse
+    // (planets sweep faster near perihelion). Newton iteration, converges fast for e < 0.25
+    private trueAnomaly(meanAnomaly: number): number {
+        const e = this.eccentricity;
+        let E = meanAnomaly;
+        for (let i = 0; i < 5; i++) {
+            E -= (E - e * Math.sin(E) - meanAnomaly) / (1 - e * Math.cos(E));
+        }
+        return 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2));
+    }
+
     orbit(elapsedTime: number) {
         // Convert elapsed time to days
         const elapsedDays = elapsedTime / (24 * 60 * 60);
 
-        const angle = this.initialAngle + (elapsedDays * 2 * Math.PI / this.data.orbitalPeriod);
-        this.mesh.position.copy(this.orbitPointAt(angle));
+        const meanAnomaly = this.initialAngle + (elapsedDays * 2 * Math.PI / this.data.orbitalPeriod);
+        this.mesh.position.copy(this.orbitPointAt(this.trueAnomaly(meanAnomaly)));
 
         // Rotational motion
         const rotationAngle = (elapsedDays / this.data.rotationPeriod) * 2 * Math.PI;
@@ -105,39 +124,43 @@ export class Planet {
         this.mesh.add(this.ring);
     }
 
-    createOrbitLine(color: number): THREE.Line {
-        const segments = 360
+    private orbitPoints(segments: number): THREE.Vector3[] {
         const points = []
-
         for (let i = 0; i <= segments; i++) {
             points.push(this.orbitPointAt((i / segments) * Math.PI * 2))
         }
+        return points
+    }
 
-        const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points)
+    private createHitboxGeometry(): THREE.TubeGeometry {
+        const baseRadius = 0.5; // Base radius for inner planets
+        const scaleFactor = 0.025; // Adjust this to control how much the hitbox grows with distance
+        const tubeRadius = baseRadius + (this.semiMajorAxis * scaleFactor);
+
+        const curve = new THREE.CatmullRomCurve3(this.orbitPoints(360))
+        return new THREE.TubeGeometry(curve, 360, tubeRadius, 8, true)
+    }
+
+    createOrbitLine(color: number): THREE.Line {
+        const orbitGeometry = new THREE.BufferGeometry().setFromPoints(this.orbitPoints(360))
         const orbitMaterial = new THREE.LineBasicMaterial({ color: color, linewidth: 1, opacity: 0.2, transparent: true })
         return new THREE.Line(orbitGeometry, orbitMaterial)
     }
 
     createOrbitHitbox(): THREE.Mesh {
-        const baseRadius = 0.5; // Base radius for inner planets
-        const scaleFactor = 0.025; // Adjust this to control how much the hitbox grows with distance
-        const tubeRadius = baseRadius + (this.semiMajorAxis * scaleFactor);
-        
-        const tubeSegments = 360
-        const tubeRadialSegments = 8
-        const curvePoints = []
-
-        for (let i = 0; i <= tubeSegments; i++) {
-            curvePoints.push(this.orbitPointAt((i / tubeSegments) * Math.PI * 2))
-        }
-
-        const curve = new THREE.CatmullRomCurve3(curvePoints)
-        const geometry = new THREE.TubeGeometry(curve, tubeSegments, tubeRadius, tubeRadialSegments, true)
         const material = new THREE.MeshBasicMaterial({
             visible: false,
             // color: 'red'
         })
-        return new THREE.Mesh(geometry, material);
+        return new THREE.Mesh(this.createHitboxGeometry(), material);
+    }
+
+    setCompactDistances(compact: boolean) {
+        this.compact = compact
+        this.orbitLine.geometry.dispose()
+        this.orbitLine.geometry = new THREE.BufferGeometry().setFromPoints(this.orbitPoints(360))
+        this.orbitHitbox.geometry.dispose()
+        this.orbitHitbox.geometry = this.createHitboxGeometry()
     }
 
     calculateInitialAngle(initialDate: Date, referenceDate: Date): number {

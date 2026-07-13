@@ -10,6 +10,7 @@ export class GUIManager {
         this.gui = new GUI();
         this.setupTimeControls(timeManager);
         this.setupOrbitLineControls(scene);
+        this.gui.close();
     }
 
     private setupTimeControls(timeManager: TimeManager) {
@@ -29,11 +30,15 @@ export class GUIManager {
     }
 
     private setupOrbitLineControls(scene: SolarSystemScene) {
-        const orbitLineVisibility = { visible: true };
-        this.gui.add(orbitLineVisibility, 'visible')
+        const options = { orbitLines: true, labels: true, compact: false };
+        this.gui.add(options, 'orbitLines')
             .name('Show Orbit Lines')
-            .onChange((value: boolean) => {
-                scene.setOrbitLineVisibility(value);
-            });
+            .onChange((value: boolean) => scene.setOrbitLineVisibility(value));
+        this.gui.add(options, 'labels')
+            .name('Planet Labels')
+            .onChange((value: boolean) => scene.setLabelVisibility(value));
+        this.gui.add(options, 'compact')
+            .name('Compact Distances')
+            .onChange((value: boolean) => scene.setCompactDistances(value));
     }
 }

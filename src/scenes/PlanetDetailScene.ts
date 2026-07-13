@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { Planet } from '../components/Planet';
-import { SolarSystemScene } from './SolarSystemScene';
 
 export class PlanetDetailScene {
     private container!: HTMLElement;
@@ -24,7 +23,6 @@ export class PlanetDetailScene {
         this.mainCamera = mainCamera;
         this.initializeElements();
         this.setupRenderer();
-        this.setupTabListeners();
     }
 
     private setupTabListeners() {

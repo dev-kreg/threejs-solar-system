@@ -1,6 +1,5 @@
 import * as THREE from 'three'
-import { planetaryData, PlanetData } from '../constants/PlanetaryData'
-import { SceneManager } from '../utils/SceneManager'
+import { PlanetData } from '../constants/PlanetaryData'
 
 export class Planet {
     mesh: THREE.Mesh
@@ -17,6 +16,7 @@ export class Planet {
         data: PlanetData,
         initialDate: Date,
         loadingManager: THREE.LoadingManager,
+        scene: THREE.Scene,
         referenceDate: Date = new Date('2000-01-01T12:00:00Z') // J2000 epoch
     ) {
         const textureLoader = new THREE.TextureLoader(loadingManager)
@@ -33,38 +33,35 @@ export class Planet {
 
         this.initialAngle = this.calculateInitialAngle(initialDate, referenceDate)
 
-        SceneManager.getInstance().addObject(this.mesh)
+        scene.add(this.mesh)
         this.orbitLine = this.createOrbitLine(0xFFFFFF)
         this.orbitHitbox = this.createOrbitHitbox()
-        SceneManager.getInstance().addObject(this.orbitLine)
-        SceneManager.getInstance().addObject(this.orbitHitbox)
-        
-        // Add cursor styles
-        this.mesh.userData.hoverCursor = 'pointer';
-        this.orbitHitbox.userData.hoverCursor = 'pointer';
+        scene.add(this.orbitLine)
+        scene.add(this.orbitHitbox)
 
-        
         // Create ring if the planet has one
         if (data.ring) {
             this.createRing(data.ring, textureLoader);
         }
     }
 
+    // Position on the inclined elliptical orbit at a given true anomaly
+    private orbitPointAt(angle: number): THREE.Vector3 {
+        const r = this.semiMajorAxis * (1 - this.eccentricity * this.eccentricity) / (1 + this.eccentricity * Math.cos(angle));
+        const inclination = this.data.orbitalInclination * Math.PI / 180;
+        return new THREE.Vector3(
+            r * Math.cos(angle),
+            r * Math.sin(angle) * Math.sin(inclination),
+            r * Math.sin(angle) * Math.cos(inclination)
+        );
+    }
+
     orbit(elapsedTime: number) {
         // Convert elapsed time to days
         const elapsedDays = elapsedTime / (24 * 60 * 60);
 
-        // Calculate the planet's position on its elliptical orbit
         const angle = this.initialAngle + (elapsedDays * 2 * Math.PI / this.data.orbitalPeriod);
-        const r = this.semiMajorAxis * (1 - this.eccentricity * this.eccentricity) / (1 + this.eccentricity * Math.cos(angle));
-
-        // Apply inclination
-        const inclination = this.data.orbitalInclination * Math.PI / 180; // Convert to radians
-        const x = r * Math.cos(angle);
-        const y = r * Math.sin(angle) * Math.sin(inclination);
-        const z = r * Math.sin(angle) * Math.cos(inclination);
-
-        this.mesh.position.set(x, y, z);
+        this.mesh.position.copy(this.orbitPointAt(angle));
 
         // Rotational motion
         const rotationAngle = (elapsedDays / this.data.rotationPeriod) * 2 * Math.PI;
@@ -113,16 +110,7 @@ export class Planet {
         const points = []
 
         for (let i = 0; i <= segments; i++) {
-            const angle = (i / segments) * Math.PI * 2
-            const r = this.semiMajorAxis * (1 - this.eccentricity * this.eccentricity) / (1 + this.eccentricity * Math.cos(angle));
-            
-            // Apply inclination
-            const inclination = this.data.orbitalInclination * Math.PI / 180; // Convert to radians
-            const x = r * Math.cos(angle);
-            const y = r * Math.sin(angle) * Math.sin(inclination);
-            const z = r * Math.sin(angle) * Math.cos(inclination);
-
-            points.push(new THREE.Vector3(x, y, z))
+            points.push(this.orbitPointAt((i / segments) * Math.PI * 2))
         }
 
         const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points)
@@ -140,16 +128,7 @@ export class Planet {
         const curvePoints = []
 
         for (let i = 0; i <= tubeSegments; i++) {
-            const angle = (i / tubeSegments) * Math.PI * 2
-            const r = this.semiMajorAxis * (1 - this.eccentricity * this.eccentricity) / (1 + this.eccentricity * Math.cos(angle));
-            
-            // Apply inclination
-            const inclination = this.data.orbitalInclination * Math.PI / 180; // Convert to radians
-            const x = r * Math.cos(angle);
-            const y = r * Math.sin(angle) * Math.sin(inclination);
-            const z = r * Math.sin(angle) * Math.cos(inclination);
-
-            curvePoints.push(new THREE.Vector3(x, y, z))
+            curvePoints.push(this.orbitPointAt((i / tubeSegments) * Math.PI * 2))
         }
 
         const curve = new THREE.CatmullRomCurve3(curvePoints)
@@ -158,9 +137,7 @@ export class Planet {
             visible: false,
             // color: 'red'
         })
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.userData.hoverCursor = 'pointer';
-        return mesh;
+        return new THREE.Mesh(geometry, material);
     }
 
     calculateInitialAngle(initialDate: Date, referenceDate: Date): number {
@@ -187,11 +164,4 @@ export class Planet {
     setOrbitLineVisibility(visible: boolean) {
         this.orbitLine.visible = visible
     }
-
-    dispose() {
-        SceneManager.getInstance().removeObject(this.mesh)
-        SceneManager.getInstance().removeObject(this.orbitLine)
-        SceneManager.getInstance().removeObject(this.orbitHitbox)
-    }
-
 }

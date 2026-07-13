@@ -25,8 +25,4 @@ export class TimeManager {
     setTimeScale(scale: number) {
         this.timeScale = scale;
     }
-
-    getAccumulatedTime() {
-        return this.accumulatedTime;
-    }
 }

@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { Planet } from '../components/Planet'
 import { planetaryData, sunData } from '../constants/PlanetaryData'
@@ -22,7 +21,7 @@ export class SolarSystemScene {
     private dragThreshold: number = 100; // milliseconds
 
     constructor(canvas: HTMLCanvasElement) {
-        this.sceneManager = SceneManager.initialize(canvas)
+        this.sceneManager = new SceneManager(canvas)
         this.planetDetailScene = new PlanetDetailScene(this.sceneManager.scene, this.sceneManager.camera);
         this.loadingManager = new THREE.LoadingManager(
             // onLoad
@@ -74,10 +73,10 @@ export class SolarSystemScene {
     private setupLighting() {
         const pointLight = new THREE.PointLight('#fefde7', 750, 0, 1)
         pointLight.position.set(0, 0, 0)
-        this.sceneManager.addObject(pointLight)
+        this.sceneManager.scene.add(pointLight)
 
         const ambientLight = new THREE.AmbientLight('#fefde7', 0.2)
-        this.sceneManager.addObject(ambientLight)
+        this.sceneManager.scene.add(ambientLight)
 
         this.bloomPass = new UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
@@ -104,10 +103,10 @@ export class SolarSystemScene {
             new THREE.SphereGeometry(sunData.radius),
             new THREE.MeshBasicMaterial({ map: sunTexture })
         )
-        this.sceneManager.addObject(this.sun)
+        this.sceneManager.scene.add(this.sun)
 
         const initialDate = new Date()
-        this.planets = planetaryData.map(data => new Planet(data, initialDate, this.loadingManager))
+        this.planets = planetaryData.map(data => new Planet(data, initialDate, this.loadingManager, this.sceneManager.scene))
     }
 
     setOrbitLineVisibility(visible: boolean) {
@@ -129,45 +128,31 @@ export class SolarSystemScene {
         this.isDragging = false;
     }
 
-    private onCanvasMouseMove(event: MouseEvent) {
-        if (Date.now() - this.dragStartTime > this.dragThreshold) {
-            this.isDragging = true;
-        }
-
+    // Closest planet whose mesh or orbit hitbox is under the cursor
+    private planetUnderCursor(event: MouseEvent): Planet | null {
         this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
         this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
 
-        const intersects = this.raycaster.intersectObjects(this.sceneManager.scene.children);
-
-        let hoveredObject: Planet | null = null;
-        let cursorChanged = false;
-
-        for (let intersect of intersects) {
+        for (let intersect of this.raycaster.intersectObjects(this.sceneManager.scene.children)) {
             const planet = this.planets?.find(p => p.mesh === intersect.object || p.orbitHitbox === intersect.object);
-            
-            if (planet) {
-                hoveredObject = planet;
-                if (intersect.object.userData.hoverCursor) {
-                    document.body.style.cursor = intersect.object.userData.hoverCursor;
-                    cursorChanged = true;
-                }
-                break;
-            }
+            if (planet) return planet;
+        }
+        return null;
+    }
+
+    private onCanvasMouseMove(event: MouseEvent) {
+        if (Date.now() - this.dragStartTime > this.dragThreshold) {
+            this.isDragging = true;
         }
 
-        if (!cursorChanged) {
-            document.body.style.cursor = 'default';
-        }
+        const hoveredObject = this.planetUnderCursor(event);
+        document.body.style.cursor = hoveredObject ? 'pointer' : 'default';
 
         if (this.hoveredPlanet !== hoveredObject) {
-            if (this.hoveredPlanet) {
-                this.hoveredPlanet.highlightOrbit(false);
-            }
-            if (hoveredObject) {
-                hoveredObject.highlightOrbit(true);
-            }
+            this.hoveredPlanet?.highlightOrbit(false);
+            hoveredObject?.highlightOrbit(true);
             this.hoveredPlanet = hoveredObject;
         }
     }
@@ -175,25 +160,13 @@ export class SolarSystemScene {
     private onCanvasClick(event: MouseEvent) {
         if (this.isDragging) return;
 
-        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+        const clickedPlanet = this.planetUnderCursor(event);
+        if (!clickedPlanet) return;
 
-        this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
-
-        const intersects = this.raycaster.intersectObjects(this.sceneManager.scene.children);
-
-        for (let intersect of intersects) {
-            const clickedPlanet = this.planets?.find(planet => 
-                planet.mesh === intersect.object || planet.orbitHitbox === intersect.object
-            );
-            if (clickedPlanet) {
-                if (this.planetDetailScene.planet === clickedPlanet) {
-                    this.planetDetailScene.hide();
-                } else {
-                    this.planetDetailScene.show(clickedPlanet);
-                }
-                break;
-            }
+        if (this.planetDetailScene.planet === clickedPlanet) {
+            this.planetDetailScene.hide();
+        } else {
+            this.planetDetailScene.show(clickedPlanet);
         }
     }
 

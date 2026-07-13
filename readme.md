@@ -15,11 +15,13 @@
 
 ## Features
 
-- Realistic orbital periods and rotations for each planet
-- Interactive orbits and planet selection
-- Detailed planet view with close-up 3D rendering and information
-- Adjustable time scale
-- Toggleable orbit lines
+- Elliptical orbits with real inclinations, eccentricities, and Kepler-correct speeds (planets move faster near perihelion)
+- Realistic orbital periods, rotations, and axial tilts for each planet
+- Click a planet (or its label/orbit) to fly the camera in and follow it, with a draggable info panel
+- Jump the simulation to any date with the date picker
+- Adjustable time scale, toggleable orbit lines and name labels
+- Compact-distance mode to bring the outer planets into view
+- Mobile friendly: bottom-sheet info panel, tap-friendly labels
 - Bloom effect for enhanced visuals
 
 ## Caveats
@@ -27,7 +29,7 @@
 While this simulation aims to provide a representation of our solar system, it has some simplifications:
 
 1. Planet textures are static and do not accurately represent the face pointing towards the sun at any given date.
-2. Orbits are perfectly circular, whereas real planetary orbits are elliptical.
+2. Orbital phases are approximate: all planets are assumed to be at perihelion at the J2000 epoch.
 3. Planet sizes are to scale relative to each other, but the sun's size and inter-planetary distances are not to scale for better visualization.
 4. The simulation does not account for gravitational interactions between planets or other celestial bodies.
 5. No moons! 
@@ -35,11 +37,10 @@ While this simulation aims to provide a representation of our solar system, it h
 
 ## Controls
 
-- Use the GUI in the top-right corner to adjust the time scale and toggle orbit lines.
 - Click and drag to rotate the view, scroll to zoom in/out.
 - Hover over planets or their orbits to highlight the orbit.
-- Click on a planet or its orbit to open a detailed view, showing:
-  - A close-up 3D view of the selected planet
-  - Key information about the planet (name, radius, orbit radius, orbital period)
-- The detail view follows the planet's position on the screen as it orbits.
-- Use the close button on the detail view to return to the main solar system view.
+- Click a planet, its orbit, or its name label: the camera flies in and follows it, then an info panel with detailed data appears (drag it to reposition; scroll to take over the zoom).
+- Close the panel to glide back to the sun-centered view at your previous zoom.
+- Use the GUI in the top-right corner to adjust the time scale and toggle orbit lines, labels, and compact distances.
+- Use the date picker in the bottom-left to jump the simulation to any date.
+- Append `?debug` to the URL for an FPS counter.

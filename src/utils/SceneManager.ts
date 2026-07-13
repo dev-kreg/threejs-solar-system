@@ -24,7 +24,8 @@ export class SceneManager {
 
         this.renderer = new THREE.WebGLRenderer({ canvas })
         this.renderer.setSize(window.innerWidth, window.innerHeight)
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+        // Cap DPR harder on phones: bloom multiplies every fullscreen pixel across its passes
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.innerWidth < 768 ? 1.5 : 2))
         this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace
 
         this.orbitControls = new OrbitControls(this.camera, canvas)

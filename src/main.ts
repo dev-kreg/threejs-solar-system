@@ -7,6 +7,26 @@ const solarSystemScene = new SolarSystemScene(canvas)
 let timeManager: TimeManager | null = null
 let guiManager: GUIManager | null = null
 
+// ?debug — fps counter, no deps
+if (new URLSearchParams(location.search).has('debug')) {
+    const el = document.createElement('div')
+    el.style.cssText = 'position:fixed;top:8px;left:8px;color:#20C20E;font:14px monospace;z-index:999'
+    document.body.appendChild(el)
+    let frames = 0
+    let last = performance.now()
+    const tick = () => {
+        frames++
+        const now = performance.now()
+        if (now - last >= 500) {
+            el.textContent = `${Math.round(frames * 1000 / (now - last))} fps`
+            frames = 0
+            last = now
+        }
+        requestAnimationFrame(tick)
+    }
+    tick()
+}
+
 const dateDisplay = document.getElementById('simulated-date')!
 const initialDate = new Date()
 

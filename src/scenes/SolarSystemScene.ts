@@ -78,8 +78,9 @@ export class SolarSystemScene {
         const ambientLight = new THREE.AmbientLight('#fefde7', 0.2)
         this.sceneManager.scene.add(ambientLight)
 
+        // ponytail: half-res bloom — it's a blur, full res is invisible and doubles mobile GPU cost
         this.bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2),
             1.5,  // strength
             0.4,  // radius
             0.85  // threshold
@@ -135,7 +136,10 @@ export class SolarSystemScene {
 
         this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
 
-        for (let intersect of this.raycaster.intersectObjects(this.sceneManager.scene.children)) {
+        // Only test planet meshes/hitboxes, not the whole scene graph
+        const targets: THREE.Object3D[] = [];
+        this.planets?.forEach(p => targets.push(p.mesh, p.orbitHitbox));
+        for (let intersect of this.raycaster.intersectObjects(targets, false)) {
             const planet = this.planets?.find(p => p.mesh === intersect.object || p.orbitHitbox === intersect.object);
             if (planet) return planet;
         }
